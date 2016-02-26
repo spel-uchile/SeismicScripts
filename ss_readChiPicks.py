@@ -1,59 +1,69 @@
 #!/usr/bin/env python
 __author__ = 'toopazo'
 
-import argparse
-import os
-from obspy.core import read
-from obspy.core import UTCDateTime
-
-parser = argparse.ArgumentParser(description='Plot given file(s) (obspy wrapper)')
-parser.add_argument('--files', action='store', help='files to process', nargs='+')
-#parser.add_argument('file', type=argparse.FileType('r'), nargs='+')
-parser.add_argument('--save', action='store_true', help='save ploted file(s)')
-args = parser.parse_args()
-
-# 1) Convert to real (no symlink) and full path
-file_paths = args.files
-save_plot = args.save
-for i in range(0, len(file_paths)):
-    file_paths[i] = os.path.normcase(file_paths[i])
-    file_paths[i] = os.path.normpath(file_paths[i])
-    file_paths[i] = os.path.realpath(file_paths[i])
-    print(file_paths[i])
-
-# 2) Construct Stream object
-st = read(file_paths[0])
-for i in range(1, len(file_paths)):
-    st += read(file_paths[i])
-st = st.sort()
-
-if not save_plot:
-    st.plot(method='full')
-else:
-    save_plot_name = 'PlotedFiles_'
-    save_plot_name += str(st[0].stats.starttime)
-    save_plot_name = save_plot_name.replace('-', '_')
-    save_plot_name = save_plot_name.replace(':', '_')
-    save_plot_name = save_plot_name.replace('.', '_')
-    save_plot_name += '.png'
-    st.plot(outfile=save_plot_name)
-
-
 # Following tutorial at http://docs.obspy.org/tutorial/index.html
 
-# 2) UTCDateTime
-# from obspy.core import UTCDateTime
-# time1 = UTCDateTime("2012-09-07T12:15:00")
-# print(time1)
-# print(time1.year)
-# print(time1.julday)
-# print(time1.timestamp)
-# print(time1.weekday)
-#
-# time2 = UTCDateTime(2012, 1, 1)
-# print(time2)
-# print(time1 - time2)
-# print(UTCDateTime())
+import argparse
+import os
+from obspy.core import UTCDateTime
+import numpy
+
+parser = argparse.ArgumentParser(description='Get time differences between picks files')
+parser.add_argument('--infile', action='store', help='files to process', nargs='+', required=True)
+#parser.add_argument('file', type=argparse.FileType('r'), nargs='+')
+#parser.add_argument('--outfile', action='store', help='name of output file')
+parser.add_argument('--start_col', action='store', help='starting column')
+parser.add_argument('--stop_col', action='store', help='stoping column')
+# parser.add_argument('--day_plot', action='store_true', help='day plot of the given file(s), normally same channel')
+args = parser.parse_args()
+
+# 1) Make sure user inputs are correct
+#columns
+start_col = int(args.start_col)
+stop_col = int(args.stop_col)
+#paths
+infile_paths = args.infile
+for i in range(0, len(infile_paths)):
+    infile_paths[i] = os.path.normcase(infile_paths[i])
+    infile_paths[i] = os.path.normpath(infile_paths[i])
+    infile_paths[i] = os.path.realpath(infile_paths[i])
+    print(infile_paths[i])
+
+time_A = []
+time_B = []
+#for i in range(0, len(infile_paths)):
+print("time_A")
+for line in open(infile_paths[0]):
+    line = line[start_col:stop_col]
+    #print(line)
+    time_i = UTCDateTime(line)
+    print(time_i)
+    time_A.append(time_i)
+
+print("time_B")
+for line in open(infile_paths[1]):
+    line = line[start_col:stop_col]
+    #print(line)
+    time_i = UTCDateTime(line)
+    print(time_i)
+    time_B.append(time_i)
+
+print("time_diff")
+time_diff_arr = []
+for i in range(0, max(len(time_A), len(time_B))):
+    try:
+        #print("time_A[i]-time_A[i] = %s -%s" % (time_A[i], time_B[i]))
+        time_diff = time_A[i]-time_B[i]
+        time_diff = abs(time_diff)
+        time_diff_arr.append(time_diff)
+    except IndexError:
+        time_diff = "IndexError"
+    print(time_diff)
+time_diff_arr = numpy.array(time_diff_arr)
+print("time_diff_arr.mean() = %s" % time_diff_arr.mean())
+print("time_diff_arr.std() = %s" % time_diff_arr.std())
+
+
 
 # 3) Reading Seismograms
 # from obspy.core import read
