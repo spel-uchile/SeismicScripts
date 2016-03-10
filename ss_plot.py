@@ -4,15 +4,19 @@ __author__ = 'toopazo'
 import argparse
 import os
 from obspy.core import read
+#import matplotlib
+#matplotlib.rcParams.chunksize(100000)
 
 parser = argparse.ArgumentParser(description='Plot given file(s) (obspy wrapper)')
 parser.add_argument('--infile', action='store', help='files to process', nargs='+', required=True)
 #parser.add_argument('file', type=argparse.FileType('r'), nargs='+')
 parser.add_argument('--outfile', action='store', help='name of output file')
 parser.add_argument('--dayplot', action='store_true', help='dayplot of the given file(s), normally same channel')
+parser.add_argument('--filter', action='store', help='Filter signal before ploting')
 args = parser.parse_args()
 
 # 1) Make sure user inputs are correct
+filter_plot = args.filter
 outfile_plot = args.outfile
 dayplot = args.dayplot
 # Convert to real (no symlink) and full path
@@ -37,12 +41,12 @@ else:
 if outfile_plot is not None:
     outfile_plot_name = str(outfile_plot)
     outfile_plot_name += '.png'
+    if filter_plot is not None:
+        st.filter("lowpass", freq=int(filter_plot), corners=10)   # , zerophase=True
     st.plot(type=plot_option_type, outfile=outfile_plot_name, size=(800, 600))
-    #st.plot(type=plot_option_type, outfile=outfile_plot_name, size=(1024, 768))
-    #st.plot(type=plot_option_type, outfile=outfile_plot_name, size=(1920, 1080))
-    #st.plot(type=plot_option_type, outfile=outfile_plot_name, size=(2048, 1080))
 else:
     print(st[0].stats)
     print(st[0].data)
-    #st.filter("lowpass", freq=49, corners=10)   # , zerophase=True
+    if filter_plot is not None:
+        st.filter("lowpass", freq=int(filter_plot), corners=10)   # , zerophase=True
     st.plot(type=plot_option_type, method='full')

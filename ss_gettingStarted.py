@@ -126,44 +126,47 @@ __author__ = 'toopazo'
 # st.spectrogram(log=True, title=tr0_header + '    ' + str(st[0].stats.starttime),
 #                outfile='2015-09-24T14-00-00-000Z_RST0000_0_ch4_spectrum.png')
 
-# 12) Trigger/Picker Tutorial
-from obspy.core import read
-#from obspy.signal.trigger import plotTrigger
-#from obspy.signal.trigger import classicSTALTA
-#from obspy.signal.trigger import pkBaer
-from obspy.signal.trigger import arPick
-from obspy.core import UTCDateTime
+# # 12) Trigger/Picker Tutorial
+# from obspy.core import read
+# #from obspy.signal.trigger import plotTrigger
+# #from obspy.signal.trigger import classicSTALTA
+# #from obspy.signal.trigger import pkBaer
+# from obspy.signal.trigger import arPick
+# from obspy.core import UTCDateTime
+#
+# #st = read("http://examples.obspy.org/ev0_6.a01.gse2")
+# st = read('SPQRUSB/stream/2015-09-24T14-00-00-000Z_RST0000_0_ch4.MSEED')
+# st += read('SPQRUSB/stream/2015-09-24T14-00-00-000Z_RST0000_0_ch3.MSEED')
+# st += read('SPQRUSB/stream/2015-09-24T14-00-00-000Z_RST0000_0_ch2.MSEED')
+# print(st)
+#
+# tr1 = st[0]
+# #print(tr1.stats)
+# df = tr1.stats.sampling_rate
+# start_time = tr1.stats['starttime']
+# #print(start_time)
+# start_time = UTCDateTime(start_time)
+# #print(start_time)
+# #st.filter("lowpass", freq=7, corners=10)   # , zerophase=True
+# tr1 = st[0]
+# tr2 = st[1]
+# tr3 = st[2]
+#
+# #p_pick, phase_info = pkBaer(tr1.data, df, 20, 60, 7.0, 12.0, 100, 100)
+# #print(p_pick)
+# #print(phase_info)
+# #print(p_pick/phase_info)
+# #st = st.slice(starttime=start_time, endtime=(start_time+15*60))
+#
+# p_pick, s_pick = arPick(tr1.data, tr2.data, tr3.data, df, 1.0, 20.0, 1.0, 0.1, 4.0, 1.0, 2, 8, 0.1, 0.2)
+# print(p_pick)
+# print(s_pick)
+# p_pick = start_time + p_pick
+# s_pick = start_time + s_pick
+# print(p_pick)
+# print(s_pick)
+#
+# st.plot()
 
-#st = read("http://examples.obspy.org/ev0_6.a01.gse2")
-st = read('SPQRUSB/stream/2015-09-24T14-00-00-000Z_RST0000_0_ch4.MSEED')
-st += read('SPQRUSB/stream/2015-09-24T14-00-00-000Z_RST0000_0_ch3.MSEED')
-st += read('SPQRUSB/stream/2015-09-24T14-00-00-000Z_RST0000_0_ch2.MSEED')
-print(st)
-
-tr1 = st[0]
-#print(tr1.stats)
-df = tr1.stats.sampling_rate
-start_time = tr1.stats['starttime']
-#print(start_time)
-start_time = UTCDateTime(start_time)
-#print(start_time)
-#st.filter("lowpass", freq=7, corners=10)   # , zerophase=True
-tr1 = st[0]
-tr2 = st[1]
-tr3 = st[2]
-
-#p_pick, phase_info = pkBaer(tr1.data, df, 20, 60, 7.0, 12.0, 100, 100)
-#print(p_pick)
-#print(phase_info)
-#print(p_pick/phase_info)
-#st = st.slice(starttime=start_time, endtime=(start_time+15*60))
-
-p_pick, s_pick = arPick(tr1.data, tr2.data, tr3.data, df, 1.0, 20.0, 1.0, 0.1, 4.0, 1.0, 2, 8, 0.1, 0.2)
-print(p_pick)
-print(s_pick)
-p_pick = start_time + p_pick
-s_pick = start_time + s_pick
-print(p_pick)
-print(s_pick)
-
-st.plot()
+import numpy as np
+import matplotlib.pyplot as plt
