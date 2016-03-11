@@ -2,14 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0d7c3072-194b-4464-a99e-ea6e9f076f5d" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/ss_fft.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/ss_folder_extension.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/ss_folder_fft.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/ss_folder_plot.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/ss_folder_spectrogram.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ss_gettingStarted.py" afterPath="$PROJECT_DIR$/ss_gettingStarted.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ss_plot.py" afterPath="$PROJECT_DIR$/ss_plot.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="SeismicScripts.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -65,8 +58,8 @@
       <file leaf-file-name="ss_folder_fft.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ss_folder_fft.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2970">
-              <caret line="10" column="31" selection-start-line="9" selection-start-column="0" selection-end-line="10" selection-end-column="31" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="1577" max-vertical-offset="2970">
+              <caret line="159" column="0" selection-start-line="159" selection-start-column="0" selection-end-line="159" selection-end-column="0" />
               <folding>
                 <element signature="e#46#61#0" expanded="true" />
               </folding>
@@ -77,9 +70,11 @@
       <file leaf-file-name="ss_gettingStarted.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/ss_gettingStarted.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.9007718" vertical-offset="2261" max-vertical-offset="3186">
-              <caret line="171" column="31" selection-start-line="171" selection-start-column="31" selection-end-line="171" selection-end-column="31" />
-              <folding />
+            <state vertical-scroll-proportion="0.34509373" vertical-offset="2945" max-vertical-offset="3996">
+              <caret line="181" column="28" selection-start-line="181" selection-start-column="28" selection-end-line="181" selection-end-column="28" />
+              <folding>
+                <element signature="e#5588#5606#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -87,8 +82,8 @@
       <file leaf-file-name="ss_fft.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ss_fft.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="515" max-vertical-offset="3474">
-              <caret line="37" column="0" selection-start-line="37" selection-start-column="0" selection-end-line="62" selection-end-column="33" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="2513" max-vertical-offset="3474">
+              <caret line="183" column="1" selection-start-line="183" selection-start-column="1" selection-end-line="183" selection-end-column="1" />
               <folding>
                 <element signature="e#46#61#0" expanded="true" />
               </folding>
@@ -500,7 +495,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="1145" max-vertical-offset="3132">
           <caret line="64" column="0" selection-start-line="64" selection-start-column="0" selection-end-line="64" selection-end-column="64" />
-          <folding />
+          <folding>
+            <element signature="e#5588#5606#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -546,7 +543,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="2314" max-vertical-offset="3132">
           <caret line="144" column="28" selection-start-line="144" selection-start-column="28" selection-end-line="144" selection-end-column="28" />
-          <folding />
+          <folding>
+            <element signature="e#5588#5606#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -569,7 +568,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="342">
           <caret line="13" column="0" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#5588#5606#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -690,20 +691,20 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ss_fft.py">
+    <entry file="file://$PROJECT_DIR$/ss_folder_fft.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="515" max-vertical-offset="3474">
-          <caret line="37" column="0" selection-start-line="37" selection-start-column="0" selection-end-line="62" selection-end-column="33" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="1577" max-vertical-offset="2970">
+          <caret line="159" column="0" selection-start-line="159" selection-start-column="0" selection-end-line="159" selection-end-column="0" />
           <folding>
             <element signature="e#46#61#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ss_folder_fft.py">
+    <entry file="file://$PROJECT_DIR$/ss_fft.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2970">
-          <caret line="10" column="31" selection-start-line="9" selection-start-column="0" selection-end-line="10" selection-end-column="31" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="2513" max-vertical-offset="3474">
+          <caret line="183" column="1" selection-start-line="183" selection-start-column="1" selection-end-line="183" selection-end-column="1" />
           <folding>
             <element signature="e#46#61#0" expanded="true" />
           </folding>
@@ -712,9 +713,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ss_gettingStarted.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.9007718" vertical-offset="2261" max-vertical-offset="3186">
-          <caret line="171" column="31" selection-start-line="171" selection-start-column="31" selection-end-line="171" selection-end-column="31" />
-          <folding />
+        <state vertical-scroll-proportion="0.34509373" vertical-offset="2945" max-vertical-offset="3996">
+          <caret line="181" column="28" selection-start-line="181" selection-start-column="28" selection-end-line="181" selection-end-column="28" />
+          <folding>
+            <element signature="e#5588#5606#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

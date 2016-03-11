@@ -170,3 +170,47 @@ __author__ = 'toopazo'
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+norm_abs_rfft_dbfs_SPQR = np.array([-12.0911, -11.8841, -9.46338, -9.90769, -14.76602])
+freq_SPQR = np.array([0.102033, 1.003523, 3.10937, 10.0245, 31.1570])
+norm_abs_rfft_dbfs_SARA = np.array([-1.81394, -4.75732, -1.78559, -6.13828, -15.35612])
+freq_SARA = np.array([0.101867, 0.99995, 3.11279, 10.0216, 31.1589])
+
+fig, ax = plt.subplots(2, 1)
+
+ax[0].plot(freq_SARA, norm_abs_rfft_dbfs_SARA, marker='o')
+ax[0].set_title('SARA (top), SPQR (bottom) ')
+ax[0].set_xlabel('Frequency [Hz]')
+ax[0].set_ylabel('Frequency Response [dBFS]')
+# Extra info (max Freq, dBFS,  etc)
+y_axis = norm_abs_rfft_dbfs_SARA
+x_axis = freq_SARA
+y_axis_argmax = y_axis.argmax()
+x_axis_max = y_axis.max()
+print('y_axis_argmax = %s' % y_axis_argmax)
+print('y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
+print('x_axis_max() = %s' % x_axis_max)
+arg_freqinfo = ' %s [Hz]\n %s [dbFS]' % (x_axis[y_axis_argmax], x_axis_max)
+ax[0].annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+0.003, x_axis_max),
+               xytext=(x_axis[y_axis_argmax]+3, x_axis_max*1.3),
+               arrowprops=dict(facecolor='black', shrink=0.05),
+               )
+
+ax[1].plot(freq_SPQR, norm_abs_rfft_dbfs_SPQR, marker='o')
+ax[1].set_xlabel('Frequency [Hz]')
+ax[1].set_ylabel('Frequency Response [dBFS]')
+# Extra info (max Freq, dBFS,  etc)
+y_axis = norm_abs_rfft_dbfs_SPQR
+x_axis = freq_SPQR
+y_axis_argmax = y_axis.argmax()
+x_axis_max = y_axis.max()
+print('y_axis_argmax = %s' % y_axis_argmax)
+print('y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
+print('x_axis_max() = %s' % x_axis_max)
+arg_freqinfo = ' %s [Hz]\n %s [dbFS]' % (x_axis[y_axis_argmax], x_axis_max)
+ax[1].annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+0.003, x_axis_max),
+               xytext=(x_axis[y_axis_argmax]+3, x_axis_max*1.3),
+               arrowprops=dict(facecolor='black', shrink=0.05),
+               )
+
+plt.show()
