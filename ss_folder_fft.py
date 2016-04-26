@@ -77,7 +77,7 @@ for file_i in infolder_files:
     # 5) Plot
     plt.plot(freq, norm_abs_rfft_dbfs, marker='o', markersize=4)
     plt.xlabel('Freq (Hz)')
-    plt.ylabel('Normalized |Y(f)| relative to Full Scale [dbFS]')
+    plt.ylabel('Normalized |Y(f)| relative to Full Scale [dbFS], 24 bits')
     # Extra info (max Freq, dBFS,  etc)
     y_axis = norm_abs_rfft_dbfs
     x_axis = freq
