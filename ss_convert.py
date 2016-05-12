@@ -24,7 +24,7 @@ for i in range(0, len(infile_paths)):
     infile_paths[i] = os.path.realpath(infile_paths[i])
     print(infile_paths[i])
 
-# 1.5) If TUPLE, convert to Stream and Traces
+# 1.5) If SLIST, convert to MSEED
 if ".slist" in infile_paths[0]:
     #print("Tuple file %s" % infile_paths[0])
     print("SLIST file %s" % infile_paths[0])

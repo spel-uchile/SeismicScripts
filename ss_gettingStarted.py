@@ -215,36 +215,42 @@ __author__ = 'toopazo'
 #
 # plt.show()
 
-import numpy as np
-import matplotlib.pyplot as plt
-import math
-import cmath
-
-log10_AmpY_arr = []
-AmpY_arr = []
-f_arr = []
-log10_f_arr = []
-for i in range(1, 50*10):
-    f = 1.0*i/10
-    jw = 1j*(2.0*math.pi*f)
-    p1 = 4.4*(-1 + 1j)
-    p2 = 4.4*(-1 - 1j)
-    AmpY = abs(((jw**2)/((jw-p1)*(jw-p2))))
-    # fo = 20
-    # wo = 2.0*math.pi*fo
-    #AmpY = abs(1/(1 + jw/(wo)))
-
-    AmpY_arr.append(AmpY)
-    log10_AmpY = 20*math.log10(AmpY)
-    log10_AmpY_arr.append(log10_AmpY)
-
-    #f = 2.0*math.pi*f
-    f_arr.append(f)
-    log10_f = 10*math.log10(f)
-    log10_f_arr.append(log10_f)
-
-    arg = "f %s [Hz], log10(f) %s => log10|AmpY| %s [dB]" % (f, log10_f, log10_AmpY)
-    print(arg)
-
-plt.plot(log10_f_arr, log10_AmpY_arr, marker='o')
-plt.show()
+# import numpy as np
+# import matplotlib.pyplot as plt
+# import math
+# import cmath
+#
+# log10_AmpY_arr = []
+# AmpY_arr = []
+# f_arr = []
+# log10_f_arr = []
+# for i in range(1, 50*10):
+#     f = 1.0*i/10
+#     jw = 1j*(2.0*math.pi*f)
+#     p1 = 4.4*(-1 + 1j)
+#     p2 = 4.4*(-1 - 1j)
+#     AmpY = abs(((jw**2)/((jw-p1)*(jw-p2))))
+#     # fo = 20
+#     # wo = 2.0*math.pi*fo
+#     #AmpY = abs(1/(1 + jw/(wo)))
+#
+#     AmpY_arr.append(AmpY)
+#     log10_AmpY = 20*math.log10(AmpY)
+#     log10_AmpY_arr.append(log10_AmpY)
+#
+#     #f = 2.0*math.pi*f
+#     f_arr.append(f)
+#     log10_f = 10*math.log10(f)
+#     log10_f_arr.append(log10_f)
+#
+#     arg = "f %s [Hz], log10(f) %s => log10|AmpY| %s [dB]" % (f, log10_f, log10_AmpY)
+#     print(arg)
+#
+# plt.plot(log10_f_arr, log10_AmpY_arr, marker='o')
+# plt.show()
+a0 = -1744
+arg = "a0 %s \t%s" % (a0, bin(a0 & 0b111111111111111111111111))
+print(arg)
+a1 = 0b1001010010110
+arg = "a1 %s \t%s" % (a1, bin(a1 & 0b111111111111111111111111))
+print(arg)

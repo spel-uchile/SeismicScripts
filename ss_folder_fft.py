@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser(description='Obspy wrapper: Apply \"FFT\" operation for infolder')
-parser.add_argument('--infolder', action='store', help='files to process', required=True)
+parser.add_argument('directory', help='directory to use', action='store')
 parser.add_argument('--str1', action='store', help='str2 to filter', required=True)
 parser.add_argument('--str2', action='store', help='str2 to filter', required=True)
 # parser.add_argument('--showplot', action='store_true', help='show plot instead of saving it')
@@ -29,7 +29,7 @@ print(str1)
 str2 = args.str2
 print(str2)
 # Convert to real (no symlink) and full path
-infolder_path = args.infolder
+infolder_path = args.directory
 infolder_path = os.path.normcase(infolder_path)
 infolder_path = os.path.normpath(infolder_path)
 infolder_path = os.path.realpath(infolder_path)
@@ -52,6 +52,9 @@ for file_i in infolder_files:
     print(st[0].stats)
     print(st[0].data)
 
+    # st[0].filter("lowpass", freq=20, corners=10)
+    # st[0].detrend()
+    # st[0].data = st[0].filter("highpass", freq=0.01, corners=4).data
     dataonly = st[0].data
     samp_rate = st[0].stats.sampling_rate
 
@@ -75,7 +78,7 @@ for file_i in infolder_files:
     print('norm_abs_rfft_dbfs (24-bit ADC is assumed !!) %s' % norm_abs_rfft_dbfs)
 
     # 5) Plot
-    plt.plot(freq, norm_abs_rfft_dbfs, marker='o', markersize=4)
+    plt.plot(freq, norm_abs_rfft_dbfs, marker='o', linestyle="-", markersize=4)
     plt.xlabel('Freq (Hz)')
     plt.ylabel('Normalized |Y(f)| relative to Full Scale [dbFS], 24 bits')
     # Extra info (max Freq, dBFS,  etc)
@@ -97,63 +100,5 @@ for file_i in infolder_files:
     outfile_name = str(filename)
     outfile_name += '_fft'
     outfile_name += outfile_extension
-
-    # tr0_header = str(st[0])[:15]
-    # plt.title(tr0_header + '    ' + str(st[0].stats.starttime))
-    # # plt.title(tr0_header + '    ' + str(st[0].stats.starttime) + '\n' + arg_freqinfo)
-    # # plt.text(40, -40, arg_freqinfo)
-    # arg_freqinfo = '%s [Hz]\n %s [dBFS]' % (freq[spec_abs_db_argmax], spec_abs_db_max)
-    # plt.annotate(arg_freqinfo, xy=(freq[spec_abs_db_argmax]+1, spec_abs_db_max),
-    #              xytext=(freq[spec_abs_db_argmax]+4, spec_abs_db_max-8),
-    #              arrowprops=dict(facecolor='black', shrink=0.05),
-    #              )
-    # plt.xlabel('Frequency [Hz]')
-    # plt.ylabel('Normalized response [dB]')
     plt.savefig(outfile_name)
     plt.clf()
-
-
-    #################3
-    #
-    # if filter_plot is not None:
-    #     st.filter("lowpass", freq=int(filter_plot), corners=10)   # , zerophase=True
-    #
-    # filename, file_extension = os.path.splitext(file_i)
-    # plot_option_type = 'normal'
-    # outfile_name = str(filename)
-    # outfile_name += '_fft'
-    # outfile_name += outfile_extension
-    #
-    # dataonly = st[0].data
-    #
-    # spec = np.fft.rfft(dataonly)
-    # samp_rate = st[0].stats.sampling_rate
-    # print samp_rate
-    # freq = np.fft.rfftfreq(len(dataonly), d=1./samp_rate)
-    # print spec.size
-    # print freq.size
-    # # spec = spec[:50]
-    # # freq = freq[:50]
-    # print spec.size
-    # print freq.size
-    #
-    # spec_abs = abs(spec)
-    # spec_abs_argmax = spec_abs.argmax()
-    # spec_abs_max = spec_abs.max()
-    # print('spec_abs.argmax() = %s' % spec_abs_argmax)
-    # print('spec_abs[%s] = %s' % (spec_abs_argmax, spec_abs[spec_abs_argmax]))
-    # print('spec_abs.max() = %s' % spec_abs_max)
-    # arg = 'Max frequency component is freq[%s] = %s [Hz] = %s [mHz]' % (spec_abs_argmax, freq[spec_abs_argmax], 1000.0*freq[spec_abs_argmax])
-    # print(arg)
-    #
-    # #plt.plot(freq, abs(spec))
-    # markerline, stemlines, baseline = plt.stem(freq, spec_abs, '-.')
-    # plt.setp(markerline, 'markerfacecolor', 'b')
-    # plt.setp(baseline, 'color', 'r', 'linewidth', 2)
-    #
-    # tr0_header = str(st[0])[:15]
-    # plt.title(tr0_header + '    ' + str(st[0].stats.starttime))
-    # plt.xlabel('Frequency [Hz]\n '+arg)
-    # plt.savefig(outfile_name)
-    # plt.clf()
-    # #plt.close()
