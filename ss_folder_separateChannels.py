@@ -7,9 +7,9 @@ __author__ = 'toopazo'
 import subprocess
 import os
 # from os import listdir
-
+# from os.path import isfile, join
 import ss_utilities
-import ss_spqrSampleCorrection
+import ss_separateChannels
 
 
 class ApplyToFolder():
@@ -48,14 +48,7 @@ class ApplyToFolder():
 
     @staticmethod
     def apply_to_file(infile):
-        # 1) Make sure user inputs are correct
-        infile = os.path.normcase(infile)
-        infile = os.path.normpath(infile)
-        infile = os.path.realpath(infile)
-        print(infile)
-
-        # 2) Correct Instrument Noise (very High Freq noise or signal "jumps")
-        ss_spqrSampleCorrection.samplecorrection(infile=infile, outfile=infile)
+        ss_separateChannels.separate_channels(infile=infile)
 
 
 if __name__ == '__main__':
@@ -64,9 +57,4 @@ if __name__ == '__main__':
     parser.add_argument('directory', help='directory to use', action='store')
     args = parser.parse_args()
 
-    uinfolder = args.directory
-    uinfolder = os.path.normcase(uinfolder)
-    uinfolder = os.path.normpath(uinfolder)
-    uinfolder = os.path.realpath(uinfolder)
-
-    ApplyToFolder.apply_to_folder(uinfolder)
+    ApplyToFolder.apply_to_folder(infolder=args.directory)

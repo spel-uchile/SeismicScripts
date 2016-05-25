@@ -67,13 +67,13 @@ ax[0].set_ylabel('Amplitude Response [dB]')
 # y_axis = norm_abs_rfft_dbfs_SARA
 # x_axis = freq_SARA
 # y_axis_argmax = y_axis.argmax()
-# x_axis_max = y_axis.max()
+# y_axis_max = y_axis.max()
 # print('y_axis_argmax = %s' % y_axis_argmax)
 # print('y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
-# print('x_axis_max() = %s' % x_axis_max)
-# arg_freqinfo = ' %s [Hz]\n %s [dbFS]' % (x_axis[y_axis_argmax], x_axis_max)
-# ax[0].annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+0.003, x_axis_max),
-#                xytext=(x_axis[y_axis_argmax]+3, x_axis_max*1.3),
+# print('y_axis_max() = %s' % y_axis_max)
+# arg_freqinfo = ' %s [Hz]\n %s [dbFS]' % (x_axis[y_axis_argmax], y_axis_max)
+# ax[0].annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+0.003, y_axis_max),
+#                xytext=(x_axis[y_axis_argmax]+3, y_axis_max*1.3),
 #                arrowprops=dict(facecolor='black', shrink=0.05),
 #                )
 
@@ -84,13 +84,13 @@ ax[1].set_ylabel('Phase Response[Hz]')
 # y_axis = norm_abs_rfft_dbfs_SPQR
 # x_axis = freq_SPQR
 # y_axis_argmax = y_axis.argmax()
-# x_axis_max = y_axis.max()
+# y_axis_max = y_axis.max()
 # print('y_axis_argmax = %s' % y_axis_argmax)
 # print('y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
-# print('x_axis_max() = %s' % x_axis_max)
-# arg_freqinfo = ' %s [Hz]\n %s [dbFS]' % (x_axis[y_axis_argmax], x_axis_max)
-# ax[1].annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+0.003, x_axis_max),
-#                xytext=(x_axis[y_axis_argmax]+3, x_axis_max*1.3),
+# print('y_axis_max() = %s' % y_axis_max)
+# arg_freqinfo = ' %s [Hz]\n %s [dbFS]' % (x_axis[y_axis_argmax], y_axis_max)
+# ax[1].annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+0.003, y_axis_max),
+#                xytext=(x_axis[y_axis_argmax]+3, y_axis_max*1.3),
 #                arrowprops=dict(facecolor='black', shrink=0.05),
 #                )
 

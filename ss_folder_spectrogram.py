@@ -8,7 +8,8 @@ from os import listdir
 from os.path import isfile, join
 
 parser = argparse.ArgumentParser(description='Obspy wrapper: Apply \"spectrogram\" operation for infolder')
-parser.add_argument('--infolder', action='store', help='files to process', required=True)
+# parser.add_argument('--infolder', action='store', help='files to process', required=True)
+parser.add_argument('directory', help='directory to use', action='store')
 parser.add_argument('--str1', action='store', help='str2 to filter', required=True)
 parser.add_argument('--str2', action='store', help='str2 to filter', required=True)
 # parser.add_argument('--showplot', action='store_true', help='show plot instead of saving it')
@@ -26,7 +27,7 @@ print(str1)
 str2 = args.str2
 print(str2)
 # Convert to real (no symlink) and full path
-infolder_path = args.infolder
+infolder_path = args.directory
 infolder_path = os.path.normcase(infolder_path)
 infolder_path = os.path.normpath(infolder_path)
 infolder_path = os.path.realpath(infolder_path)

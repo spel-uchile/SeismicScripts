@@ -7,9 +7,12 @@ __author__ = 'toopazo'
 import subprocess
 import os
 # from os import listdir
+# from os.path import isfile, join
+import numpy as np
+from obspy.core import read, Stream, Trace
+import random
 
 import ss_utilities
-import ss_spqrSampleCorrection
 
 
 class ApplyToFolder():
@@ -35,12 +38,14 @@ class ApplyToFolder():
 
         # 2) get ".xxx" files and apply "apply_to_file"
         xxx_files = ss_utilities.ParserUtilities.get_xxx_files(folderpath=infolder, extension=".MSEED")
-        for path_i in xxx_files:
-            infile_i = os.path.abspath(path_i)
-            print "[apply_to_folder] Processing infile_i %s .." % infile_i
-            ApplyToFolder.apply_to_file(infile=infile_i)
-            print "Next file >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"    # separate infile_i
-
+        for i in range(0, len(xxx_files)):
+            try:
+                infile_i = os.path.abspath(xxx_files[i])
+                print "[apply_to_folder] Processing infile_i %s .." % infile_i
+                ApplyToFolder.apply_to_file(infile=infile_i)
+                print "Next file >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"    # separate infile_i
+            except IndexError:
+                pass
         print "**********************************************************"
 
         # 3) Done
@@ -54,8 +59,30 @@ class ApplyToFolder():
         infile = os.path.realpath(infile)
         print(infile)
 
-        # 2) Correct Instrument Noise (very High Freq noise or signal "jumps")
-        ss_spqrSampleCorrection.samplecorrection(infile=infile, outfile=infile)
+        # Add noise
+        for noise_i in range(1, 10):
+
+            # Construct Stream object
+            st = read(infile)
+
+            # Add gaussian noise
+            noise_std_dev = noise_i*2
+            for i in range(0, len(st)):
+                samples = st[i].data
+                samples = np.int32(samples)
+                for sample_i in range(0, len(samples)):
+                    samples[sample_i] += random.gauss(0, noise_std_dev)
+                st[i].data = samples
+                # print(st[i])
+                # print(st[i].data)
+
+            # Save file
+            infile_ext = "_%s.MSEED" % noise_std_dev
+            outfile = infile
+            outfile = outfile.replace(".MSEED", infile_ext)
+            st.write(filename=outfile, format='MSEED')
+            # st = Stream([Trace(data=st.data, header=st.stats)])
+            # st.write(infile, format='MSEED', encoding=11, reclen=256, byteorder='>')
 
 
 if __name__ == '__main__':
@@ -70,3 +97,4 @@ if __name__ == '__main__':
     uinfolder = os.path.realpath(uinfolder)
 
     ApplyToFolder.apply_to_folder(uinfolder)
+

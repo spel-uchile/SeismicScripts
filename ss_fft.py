@@ -79,13 +79,13 @@ def do_rfft(infile, outfile, nbits):
     y_axis = norm_abs_rfft_dbfs
     x_axis = freq
     y_axis_argmax = y_axis.argmax()
-    x_axis_max = y_axis.max()
+    y_axis_max = y_axis.max()
     print('y_axis_argmax = %s' % y_axis_argmax)
     print('y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
-    print('x_axis_max() = %s' % x_axis_max)
-    arg_freqinfo = ' %s [Hz]\n %s [dBFS]' % (x_axis[y_axis_argmax], x_axis_max)
-    plt.annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+1, x_axis_max),
-                 xytext=(x_axis[y_axis_argmax]+4, x_axis_max-10),
+    print('y_axis_max() = %s' % y_axis_max)
+    arg_freqinfo = ' %s [Hz]\n %s [dBFS]' % (x_axis[y_axis_argmax], y_axis_max)
+    plt.annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+1, y_axis_max),
+                 xytext=(x_axis[y_axis_argmax]+4, y_axis_max-10),
                  arrowprops=dict(facecolor='black', shrink=0.05),
                  )
 

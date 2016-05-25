@@ -7,9 +7,12 @@ __author__ = 'toopazo'
 import subprocess
 import os
 # from os import listdir
-# from os.path import isfile, join
+from obspy import read
+from obspy.core import read, Stream, Trace
+import numpy as np
+
 import ss_utilities
-from obspy.core import read
+import ss_spqrSampleCorrection
 
 
 class ApplyToFolder():
@@ -35,45 +38,49 @@ class ApplyToFolder():
 
         # 2) get ".xxx" files and apply "apply_to_file"
         xxx_files = ss_utilities.ParserUtilities.get_xxx_files(folderpath=infolder, extension=".MSEED")
-        for i in range(0, len(xxx_files)):
-            try:
-                infile_i = os.path.abspath(xxx_files[i])
-                infile_i2 = os.path.abspath(xxx_files[i+1])
-                print "[apply_to_folder] Processing infile_i %s .." % infile_i
-                ApplyToFolder.apply_to_file(infile1=infile_i, infile2=infile_i2)
-                print "Next file >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"    # separate infile_i
-            except IndexError:
-                pass
+        for path_i in xxx_files:
+            infile_i = os.path.abspath(path_i)
+            print "[apply_to_folder] Processing infile_i %s .." % infile_i
+            ApplyToFolder.apply_to_file(infile=infile_i)
+            print "Next file >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"    # separate infile_i
+
         print "**********************************************************"
 
         # 3) Done
         print "Done"
 
     @staticmethod
-    def apply_to_file(infile1, infile2):
+    def apply_to_file(infile):
         # 1) Make sure user inputs are correct
-        infile1 = os.path.normcase(infile1)
-        infile1 = os.path.normpath(infile1)
-        infile1 = os.path.realpath(infile1)
-        print(infile1)
-        infile2 = os.path.normcase(infile2)
-        infile2 = os.path.normpath(infile2)
-        infile2 = os.path.realpath(infile2)
-        print(infile2)
+        infile = os.path.normcase(infile)
+        infile = os.path.normpath(infile)
+        infile = os.path.realpath(infile)
+        print(infile)
 
         # 2) Construct Stream object
-        st = read(infile1)
-        st += read(infile2)
-        # st = st.sort()
+        st = read(infile)
 
-        # 3) outfile name
-        filename, file_extension = os.path.splitext(infile1)
-        outfile = str(filename)
-        outfile += '_rChi'
-        outfile += ".MSEED"
+        # 3) Substract average (self-made DC detrend, actually works better)
+        for tr_i in range(0, len(st)):
+            samples = st[tr_i].data
+            samples = np.int32(samples)
+            samples_average = samples.mean()
+            for j in range(0, len(samples)):
+                samples[j] -= samples_average
+            st[tr_i].data = samples
+            # print(st[tr_i])
+            # print(st[tr_i].data)
 
-        # 4) Save file
-        st.write(filename=outfile, format='MSEED')
+        # 4) Filter and detrend
+        for tr_i in range(0, len(st)):
+            # st[0].data = st[0].detrend().data
+            # st[tr_i].filter("lowpass", freq=40, corners=10)
+            pass
+
+        # last step) Save file
+        st.write(filename=infile, format='MSEED')
+        # st = Stream([Trace(data=st.data, header=st.stats)])
+        # st.write(infile, format='MSEED', encoding=11, reclen=256, byteorder='>')
 
 
 if __name__ == '__main__':
