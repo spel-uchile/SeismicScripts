@@ -66,7 +66,9 @@ class ApplyToFolder():
             st = read(infile)
 
             # Add gaussian noise
-            noise_std_dev = noise_i*2
+            noise_std_dev = noise_i*4
+            arg = "[apply_to_file] noise_std_dev %s" % noise_std_dev
+            print(arg)
             for i in range(0, len(st)):
                 samples = st[i].data
                 samples = np.int32(samples)

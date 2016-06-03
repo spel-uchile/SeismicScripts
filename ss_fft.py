@@ -7,6 +7,7 @@ from obspy.core import read
 #from obspy.core import UTCDateTime
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
 
 
 def do_rfft(infile, outfile, nbits):
@@ -49,41 +50,51 @@ def do_rfft(infile, outfile, nbits):
     # # Tests for a perfect sine wave
     # ######################################################
     spec = np.fft.rfft(dataonly)
-    freq = np.fft.rfftfreq(len(dataonly), d=1./samp_rate)
-    print('samp_rate %s' % samp_rate)
-    print('spec %s' % spec)
-    print('freq %s' % freq)
-    print('spec.size %s' % spec.size)
-    print('freq.size %s' % freq.size)
+    freq = np.fft.rfftfreq(len(dataonly), d=1.0/samp_rate)
+    arg = "[do_rfft] ******************************************"
+    print(arg)
+    print('[do_rfft] samp_rate %s' % samp_rate)
+    print('[do_rfft] spec %s' % spec)
+    print('[do_rfft] freq %s' % freq)
+    print('[do_rfft] spec.size %s' % spec.size)
+    print('[do_rfft] freq.size %s' % freq.size)
 
-    # 4) Generate Normalized Fourier transform it to dBFS
+    # 4) Generate Normalized Fourier Transform in dBFS scale
+    arg = "[do_rfft] ******************************************"
+    print(arg)
     norm_abs_rfft = 2.0*abs(spec)/len(dataonly)
-    norm_abs_rfft_dbfs = norm_abs_rfft
-    len_norm_abs_rfft = len(norm_abs_rfft)
-    for i in range(0, len_norm_abs_rfft):
+    norm_abs_rfft_dbfs = copy.copy(norm_abs_rfft)
+    for i in range(0, len(norm_abs_rfft)):
         ratio = (1.0*norm_abs_rfft[i])/(2.0**(nbits-1))
-        if ratio < 1.0:
-            arg = 'ratio = %s = %s/%s' % (ratio, norm_abs_rfft[i], (2.0**(nbits-1)))
-            print(arg)
+        # if ratio < 1.0:
+        #     arg = 'ratio = %s = %s/%s' % (ratio, norm_abs_rfft[i], (2.0**(nbits-1)))
+        #     print(arg)
         # ratio = (1.0*norm_abs_rfft[i])
         norm_abs_rfft_dbfs[i] = 20.0*np.log10(ratio)
-    arg = 'norm_abs_rfft_dbfs (%s-bit ADC is assumed) %s' % (norm_abs_rfft_dbfs, nbits)
+    arg = '[do_rfft] norm_abs_rfft_dbfs (%s-bit ADC is assumed) %s' % (norm_abs_rfft_dbfs, nbits)
     print(arg)
 
     # 5) Plot
-    # plt.plot(freq, norm_abs_rfft_dbfs, marker='o', markersize=4)
-    plt.plot(freq, norm_abs_rfft_dbfs, marker='o', linestyle="-", markersize=4)
-    plt.xlabel('Freq (Hz)')
-    plt.ylabel('Normalized |Y(f)| relative to Full Scale [dbFS]')
-    # Extra info (max Freq, dBFS,  etc)
+    arg = "[do_rfft] ******************************************"
+    print(arg)
+    # plt.plot(freq, norm_abs_rfft, marker='o', markersize=4, color='blue')
+    # plt.plot(freq, norm_abs_rfft, marker='o', markersize=4, color='blue')
+    # plt.plot(freq, norm_abs_rfft_dbfs, marker='o', linestyle="-", markersize=4)
     y_axis = norm_abs_rfft_dbfs
     x_axis = freq
+    plt.plot(x_axis, y_axis, marker='o', markersize=4, color='blue')
+    plt.title('FFT')
+    plt.xlabel('Freq (Hz)')
+    plt.ylabel('Normalized |Y(f)| relative to Full Scale [dBFS]')
+    # Extra info (max Freq, dBFS,  etc)
+    # y_axis = norm_abs_rfft_dbfs
     y_axis_argmax = y_axis.argmax()
     y_axis_max = y_axis.max()
-    print('y_axis_argmax = %s' % y_axis_argmax)
-    print('y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
-    print('y_axis_max() = %s' % y_axis_max)
+    print('[do_rfft] y_axis_argmax = %s' % y_axis_argmax)
+    print('[do_rfft] y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
+    print('[do_rfft] y_axis_max() = %s' % y_axis_max)
     arg_freqinfo = ' %s [Hz]\n %s [dBFS]' % (x_axis[y_axis_argmax], y_axis_max)
+    print('[do_rfft] arg_freqinfo %s' % arg_freqinfo)
     plt.annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+1, y_axis_max),
                  xytext=(x_axis[y_axis_argmax]+4, y_axis_max-10),
                  arrowprops=dict(facecolor='black', shrink=0.05),
@@ -91,11 +102,16 @@ def do_rfft(infile, outfile, nbits):
 
     # 6) Save or show
     if outfile is not None:
-        outfile_plot_name = str(outfile)
+        outfile = str(outfile)
         # outfile_plot_name += '.png'
-        plt.savefig(outfile_plot_name)
+        arg = "[do_rfft] saving file %s .." % outfile
+        print(arg)
+        plt.savefig(outfile)
     else:
         plt.show()
+
+    # 7) return arrays
+    return freq, norm_abs_rfft_dbfs, norm_abs_rfft
 
 
 if __name__ == "__main__":

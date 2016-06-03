@@ -12,6 +12,8 @@ from obspy.core import Trace, Stream, UTCDateTime
 import ss_fft
 import ss_plot
 from random import uniform, randint
+import matplotlib.pyplot as plt
+import math
 
 
 class MyFunctions():
@@ -104,8 +106,6 @@ def generate_signal(sigtype):
         ######################################################
 
     elif sigtype == "prbs":
-        sampling_rate = 100.0
-
         # https://en.wikipedia.org/wiki/Linear-feedback_shift_register#Some_polynomials_for_maximal_LFSRs
         # 16bits 6543210987654321
         seed = 0b1010110011100001   # anyone except 0 will work
@@ -158,6 +158,12 @@ def generate_signal(sigtype):
         arg = "y_signal[4] %s" % y_signal[4]
         print(arg)
 
+        # time array
+        sampling_rate = 100.0
+        sampling_interval = 1.0/sampling_rate     # sampling interval
+        signal_elapsed_secs = len(y_signal)*sampling_interval
+        t_time = np.arange(0, signal_elapsed_secs, sampling_interval)     # time vector
+
     elif sigtype == "discreteDirac":
         # time array
         sampling_rate = 100.0      # sampling rate
@@ -179,9 +185,11 @@ def generate_signal(sigtype):
         print(arg)
 
     else:
+        arg = "Unknown sigtype %s" % (sigtype)
+        print(arg)
         exit(0)
 
-    #3) Convert channel ch4
+    #3) Save to MSEED in channel SHZ
     data = np.int32(y_signal)
     channel = 'SHZ'
     # Fill header attributes
@@ -190,15 +198,93 @@ def generate_signal(sigtype):
                             'mseed': {'dataquality': 'D'},
                             'starttime': UTCDateTime(str(signal_starttime))}
     st = Stream([Trace(data=data, header=stasampling_interval)])
-    # outfile_name = signal_starttime + "_" + signal_station + "_" + channel + ".MSEED"
-    # outfile_name = outfile_name.replace(":", "-")
-    outfile_name = sigtype + ".MSEED"
-    st.write(outfile_name, format='MSEED', encoding=11, reclen=256, byteorder='>')
-    #st.write(outfile_name, format='MSEED', encoding=0, reclen=256)
-    st1 = read(outfile_name)
+    # outfile = signal_starttime + "_" + signal_station + "_" + channel + ".MSEED"
+    # outfile = outfile.replace(":", "-")
+    outfile = sigtype + ".MSEED"
+    st.write(outfile, format='MSEED', encoding=11, reclen=256, byteorder='>')
+    #st.write(outfile, format='MSEED', encoding=0, reclen=256)
+    st1 = read(outfile)
     arg = "[generate_signal] MSEED created: %s" % st1[0]
     print(arg)
-    return outfile_name
+
+    # # 4) Plot
+    # # Plot Amp-Freq and Phase-Freq graphs
+    # fig, ax = plt.subplots(3, 1)
+    #
+    # # Create arrays to plot Amp-Freq and Phase-Freq graphs
+    # # Amplitude
+    # AmpY_arr.append(AmpY)
+    # log10_AmpY = 20*math.log10(AmpY)
+    # log10_AmpY_arr.append(log10_AmpY)
+    # # Frequency axis
+    # f_arr.append(f)
+    # log10_f = 10*math.log10(f)
+    # log10_f_arr.append(log10_f)
+    # # Pahse
+    # PhaseY = cmath.phase(Y)
+    # PhaseY = PhaseY*180.0/math.pi
+    # PhaseY_arr.append(PhaseY)
+    #
+    # # Plot
+    # ax[0].plot(log10_f_arr, log10_AmpY_arr, marker='o')
+    # # ax[0].set_title('Frequency Response')
+    # ax[0].set_xlabel('Frequency [log Hz]')
+    # ax[0].set_ylabel('Amplitude Response [dB]')
+    # # Extra info (max Freq, dBFS,  etc)
+    # # y_axis = norm_abs_rfft_dbfs_SARA
+    # # x_axis = freq_SARA
+    # # y_axis_argmax = y_axis.argmax()
+    # # y_axis_max = y_axis.max()
+    # # print('y_axis_argmax = %s' % y_axis_argmax)
+    # # print('y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
+    # # print('y_axis_max() = %s' % y_axis_max)
+    # # arg_freqinfo = ' %s [Hz]\n %s [dbFS]' % (x_axis[y_axis_argmax], y_axis_max)
+    # # ax[0].annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+0.003, y_axis_max),
+    # #                xytext=(x_axis[y_axis_argmax]+3, y_axis_max*1.3),
+    # #                arrowprops=dict(facecolor='black', shrink=0.05),
+    # #                )
+    #
+    # ax[1].plot(log10_f_arr, log10_AmpY_arr, marker='o')
+    # # ax[0].set_title('Frequency Response')
+    # ax[1].set_xlabel('Frequency [log Hz]')
+    # ax[1].set_ylabel('Amplitude Response [dB]')
+    # # Extra info (max Freq, dBFS,  etc)
+    # # y_axis = norm_abs_rfft_dbfs_SARA
+    # # x_axis = freq_SARA
+    # # y_axis_argmax = y_axis.argmax()
+    # # y_axis_max = y_axis.max()
+    # # print('y_axis_argmax = %s' % y_axis_argmax)
+    # # print('y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
+    # # print('y_axis_max() = %s' % y_axis_max)
+    # # arg_freqinfo = ' %s [Hz]\n %s [dbFS]' % (x_axis[y_axis_argmax], y_axis_max)
+    # # ax[0].annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+0.003, y_axis_max),
+    # #                xytext=(x_axis[y_axis_argmax]+3, y_axis_max*1.3),
+    # #                arrowprops=dict(facecolor='black', shrink=0.05),
+    # #                )
+    #
+    # ax[2].plot(log10_f_arr, PhaseY_arr, marker='o')
+    # ax[2].set_xlabel('Frequency [log Hz]')
+    # ax[2].set_ylabel('Phase Response[Hz]')
+    # # Extra info (max Freq, dBFS,  etc)
+    # # y_axis = norm_abs_rfft_dbfs_SPQR
+    # # x_axis = freq_SPQR
+    # # y_axis_argmax = y_axis.argmax()
+    # # y_axis_max = y_axis.max()
+    # # print('y_axis_argmax = %s' % y_axis_argmax)
+    # # print('y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
+    # # print('y_axis_max() = %s' % y_axis_max)
+    # # arg_freqinfo = ' %s [Hz]\n %s [dbFS]' % (x_axis[y_axis_argmax], y_axis_max)
+    # # ax[1].annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+0.003, y_axis_max),
+    # #                xytext=(x_axis[y_axis_argmax]+3, y_axis_max*1.3),
+    # #                arrowprops=dict(facecolor='black', shrink=0.05),
+    # #                )
+    #
+    # outfile = outfile.replace(".MSEED", "_TimeAmpPhase.png")
+    # plt.savefig(outfile)
+    # plt.show()
+    # plt.clf()
+
+    return outfile
 
 
 if __name__ == '__main__':
@@ -210,7 +296,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     generate_signal(sigtype=args.sigtype)
-    # resp_outfile_name = generate_signal(sigtype=args.sigtype)
-    # print(resp_outfile_name)
-    # ss_fft.do_rfft(resp_outfile_name, resp_outfile_name.replace(".MSEED", "_fft.png"), 24)
-    # ss_plot.plot_file(resp_outfile_name, resp_outfile_name.replace(".MSEED", ".png"), None, None)
+    # resp_outfile = generate_signal(sigtype=args.sigtype)
+    # print(resp_outfile)
+    # ss_fft.do_rfft(resp_outfile, resp_outfile.replace(".MSEED", "_fft.png"), 24)
+    # ss_plot.plot_file(resp_outfile, resp_outfile.replace(".MSEED", ".png"), None, None)

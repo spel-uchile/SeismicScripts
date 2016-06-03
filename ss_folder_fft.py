@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser(description='Obspy wrapper: Apply \"FFT\" operation for infolder')
 parser.add_argument('directory', help='directory to use', action='store')
+parser.add_argument('--nbits', action='store', help='number of bits, to covnert dB to dBFS', required=True)
 parser.add_argument('--str1', action='store', help='str2 to filter', required=True)
 parser.add_argument('--str2', action='store', help='str2 to filter', required=True)
 # parser.add_argument('--showplot', action='store_true', help='show plot instead of saving it')
@@ -44,6 +45,7 @@ for file_i in onlyfiles:
 sel_files.sort()
 infolder_files = sel_files
 print(infolder_files)
+nbits = int(args.nbits)
 
 outfile_extension = '.png'
 for file_i in infolder_files:
@@ -70,7 +72,6 @@ for file_i in infolder_files:
     norm_abs_rfft = 2.0*abs(spec)/len(dataonly)
     norm_abs_rfft_dbfs = norm_abs_rfft
     len_norm_abs_rfft = len(norm_abs_rfft)
-    nbits = 24
     for i in range(0, len_norm_abs_rfft):
         ratio = (1.0*norm_abs_rfft[i])/(2.0**(nbits-1))
         # ratio = (1.0*norm_abs_rfft[i])
@@ -79,8 +80,9 @@ for file_i in infolder_files:
 
     # 5) Plot
     plt.plot(freq, norm_abs_rfft_dbfs, marker='o', linestyle="-", markersize=4)
+    plt.title('FFT')
     plt.xlabel('Freq (Hz)')
-    plt.ylabel('Normalized |Y(f)| relative to Full Scale [dbFS], 24 bits')
+    plt.ylabel('Normalized |Y(f)| relative to Full Scale [dBFS]')
     # Extra info (max Freq, dBFS,  etc)
     y_axis = norm_abs_rfft_dbfs
     x_axis = freq

@@ -48,11 +48,16 @@ class ApplyToFolder():
 
     @staticmethod
     def apply_to_file(infile):
+        # ss_tuple2mseed.tuple2mseed(infile=infile,
+        #                            user_ch1='NC',
+        #                            user_ch2='SHE',
+        #                            user_ch3='SHN',
+        #                            user_ch4='SHZ')
         ss_tuple2mseed.tuple2mseed(infile=infile,
-                                   user_ch1='NC',
-                                   user_ch2='SHE',
-                                   user_ch3='SHN',
-                                   user_ch4='SHZ')
+                                   user_ch1='SHZ',
+                                   user_ch2='SHN',
+                                   user_ch3='SHE',
+                                   user_ch4='NC')
 
 
 if __name__ == '__main__':

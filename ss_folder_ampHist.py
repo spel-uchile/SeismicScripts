@@ -17,37 +17,37 @@ import ss_utilities
 
 
 class ApplyToFolder():
-    def __init__(st):
+    def __init__(self):
         pass
 
     @staticmethod
     def apply_to_folder(infolder, bins_width, bins_max):
-        #>print "[apply_to_folder] infolder %s " % infolder
-        #>print "**********************************************************"
+        print "[apply_to_folder] infolder %s " % infolder
+        print "**********************************************************"
 
         # 1) uncompress ".xxx.gz" files
         xxxgz_files = ss_utilities.ParserUtilities.get_xxx_files(folderpath=infolder, extension=".MSEED.gz")
         for path_i in xxxgz_files:
             gz_path_i = os.path.abspath(path_i)
-            #>print "[apply_to_folder] Uncompressing gz_path_i %s .." % gz_path_i
+            print "[apply_to_folder] Uncompressing gz_path_i %s .." % gz_path_i
             cmdline = "gzip -d %s" % gz_path_i
             subprocess.call(cmdline, shell=True)    # resp = str(subprocess.call(cmdline, shell=True))
             # arg = "[convert_slist2mseed] cmdline %s, resp %s" % (cmdline, resp)
             # #>print arg
 
-        #>print "**********************************************************"
+        print "**********************************************************"
 
         # 2) get ".xxx" files and apply "apply_to_file"
         xxx_files = ss_utilities.ParserUtilities.get_xxx_files(folderpath=infolder, extension=".MSEED")
         for i in range(0, len(xxx_files)):
             try:
                 infile_i = os.path.abspath(xxx_files[i])
-                #>print "[apply_to_folder] Processing infile_i %s .." % infile_i
+                print "[apply_to_folder] Processing infile_i %s .." % infile_i
                 ApplyToFolder.apply_to_file(infile=infile_i, bins_width=bins_width, bins_max=bins_max)
-                #>print "Next file >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"    # separate infile_i
+                print "Next file >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"    # separate infile_i
             except IndexError:
                 pass
-        #>print "**********************************************************"
+        print "**********************************************************"
 
         # 3) Done
         #>print "Done"
