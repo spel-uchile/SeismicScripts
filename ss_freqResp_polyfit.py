@@ -15,6 +15,28 @@ import matplotlib.lines as mlines
 import matplotlib.patches as mpatches
 
 
+def evaluate_functions(eval_freq, polyfit_roots, polyfit_degrees, polyfit_coeffs):
+    jw = 1j*(2.0*math.pi*eval_freq)
+
+    # Polynomial fit
+    # F(s = jw)  = w**n * p[0] + ... + w**1 * p[n-1] + p[n] = y(jw) [dB]
+    yfit_val = 0.0
+    for degree_j in range(0, len(polyfit_coeffs)):
+        # x[0]**n * p[0] + ... + x[0] * p[n-1] + p[n] = y[0]
+        yfit_val += (eval_freq**(polyfit_degrees-degree_j))*polyfit_coeffs[degree_j]
+    # yfit_amp_val = abs(yfit_val)
+
+    # GPZ Transfer Function
+    # F(s = jw)  = (jw - z1) .. (jw - zn) / (jw - p1) .. (jw - pm)  = y(jw)
+    ygpz_val = 1
+    for degree_j in range(0, len(polyfit_roots)):
+        # x[0]**n * p[0] + ... + x[0] * p[n-1] + p[n] = y[0]
+        ygpz_val *= (jw - polyfit_roots[degree_j])
+    # ygpz_amp_val = abs(ygpz_val)
+
+    return yfit_val, ygpz_val
+
+
 def fit_freq_response(plotphase, order, infile):
     order = int(order)
     arg = "[fit_freq_response] plotphase %s .." % plotphase
@@ -28,6 +50,7 @@ def fit_freq_response(plotphase, order, infile):
     arg = "[fit_freq_response] getting FFT .."
     print(arg)
     nbits = 24
+    dbfs_amplitude = (2.0**(nbits-1))
     freq, norm_abs_rfft_dbfs, norm_abs_rfft = ss_fft.do_rfft(infile=infile,
                                                              outfile=infile.replace(".MSEED", "_fft.png"),
                                                              nbits=nbits)
@@ -43,15 +66,13 @@ def fit_freq_response(plotphase, order, infile):
     arg = "[fit_freq_response] getting polyfit .."
     print(arg)
     polyfit_coeffs, residuals, rank, singular_values, rcond = np.polyfit(freq, norm_abs_rfft, order, full=True)
-    poly_fit_degrees = len(polyfit_coeffs) - 1
+    polyfit_degrees = len(polyfit_coeffs) - 1
     arg = "[fit_freq_response] polyfit_coeffs %s" % polyfit_coeffs
     print(arg)
     sqrt_mse = np.sqrt(residuals[0]/len(freq))
     arg = "[fit_freq_response] sqrt(MSE) %s [Counts, not in dB scale]" % sqrt_mse
     print(arg)
     sqrt_mse_dbfs = 20*np.log10(sqrt_mse/(2.0**(nbits-1)))
-    plot_title = 'Polyfit of %sth order \n sqrt(MSE) = %s [Counts] => %s [dBFS]'\
-                 % (poly_fit_degrees, sqrt_mse, sqrt_mse_dbfs)
 
     # get estimated transfer function in GainPolesZeros form
     polyfit_roots = np.roots(polyfit_coeffs)
@@ -64,86 +85,113 @@ def fit_freq_response(plotphase, order, infile):
     arg = "[fit_freq_response] polyfit_coeff %s" % polyfit_coeffs
     print(arg)
 
-    # evaluate estimated transfer function
     arg = "[fit_freq_response] ***************************************"
     print(arg)
-    arg = "[fit_freq_response] evaluating estimated transfer function .."
+    arg = "[fit_freq_response] Calculate Gain to fit input .."
+    print(arg)
+    # Calculate Gain to fit points
+    # Evaluate Tranfer Function
+    freq_tested = 0    # at 0 [Hz]
+    yfit_val, ygpz_val = evaluate_functions(freq_tested, polyfit_roots, polyfit_degrees, polyfit_coeffs)
+    yfit_amp_val = abs(yfit_val)
+    ygpz_amp_val = abs(ygpz_val)
+    # Calculate Gain
+    ygpz_gain = yfit_amp_val/ygpz_amp_val
+    arg = "[fit_freq_response] yfit_amp_val %s" % yfit_amp_val
+    print(arg)
+    arg = "[fit_freq_response] ygpz_amp_val %s" % ygpz_amp_val
+    print(arg)
+    arg = "[fit_freq_response] ygpz_gain %s" % ygpz_gain
+    print(arg)
+    # Show transfer function
+    ygpz_transfer_function = ""
+    for degree_j in range(0, len(polyfit_roots)):
+        # x[0]**n * p[0] + ... + x[0] * p[n-1] + p[n] = y[0]
+        ygpz_transfer_function += "(jw - %s)*" % polyfit_roots[degree_j]
+    ygpz_transfer_function = "H(jw) = %s*%s" % (ygpz_gain, ygpz_transfer_function[:-1])
+    arg = "[fit_freq_response] Scaled to fit input => %s" % ygpz_transfer_function
+    print(arg)
+
+    arg = "[fit_freq_response] ***************************************"
+    print(arg)
+    arg = "[fit_freq_response] Calculate Gain at 1 [Hz] .."
+    print(arg)
+    # Calculate Gain normalized 1 [Hz]
+    # Evaluate Tranfer Function
+    freq_tested = 1.0    # at 1 [Hz]
+    yfit_val, ygpz_val = evaluate_functions(freq_tested, polyfit_roots, polyfit_degrees, polyfit_coeffs)
+    yfit_amp_val = abs(yfit_val)
+    ygpz_amp_val = abs(ygpz_val)
+    # Calculate Gain
+    ygpz_gain_1_at1hz = 1.0/ygpz_amp_val
+    arg = "[fit_freq_response] yfit_amp_val %s" % yfit_amp_val
+    print(arg)
+    arg = "[fit_freq_response] ygpz_amp_val %s" % ygpz_amp_val
+    print(arg)
+    arg = "[fit_freq_response] ygpz_gain_1_at1hz %s" % ygpz_gain_1_at1hz
+    print(arg)
+    # Show transfer function
+    ygpz_transfer_function = ""
+    for degree_j in range(0, len(polyfit_roots)):
+        # x[0]**n * p[0] + ... + x[0] * p[n-1] + p[n] = y[0]
+        ygpz_transfer_function += "(jw - %s)*" % polyfit_roots[degree_j]
+    ygpz_transfer_function = "H(jw) = %s*%s" % (ygpz_gain_1_at1hz, ygpz_transfer_function[:-1])
+    arg = "[fit_freq_response] Normalized to 1.0 [Hz] => %s" % ygpz_transfer_function
+    print(arg)
+
+    # Evaluate estimated transfer function
+    arg = "[fit_freq_response] ***************************************"
+    print(arg)
+    arg = "[fit_freq_response] Evaluating transfer function .."
+    print(arg)
+    arg = "[fit_freq_response] freq[0] = %s" % freq[0]
+    print(arg)
+    arg = "[fit_freq_response] freq[len(freq)-1] = %s" % freq[len(freq)-1]
     print(arg)
     yfit_amp_dbfs = []
     ygpz_amp_dbfs = []
+    yfit_amp_db = []
+    ygpz_amp_db = []
     yfit_phase = []
     ygpz_phase = []
-    # freq_log10 =
-    ygpz_gain = 1
-
-    for freq_i in range(0, len(freq)):
-        freq_val = freq[freq_i]
-        jw = 1j*(2.0*math.pi*freq_val)
-        # w = freq_val
-
-        # Polynomial fit
-        # F(s = jw)  = w**n * p[0] + ... + w**1 * p[n-1] + p[n] = y(jw) [dB]
-        yfit_val = 0.0
-        x_i = freq[freq_i]
-        for degree_j in range(0, len(polyfit_coeffs)):
-            # x[0]**n * p[0] + ... + x[0] * p[n-1] + p[n] = y[0]
-            yfit_val += (x_i**(poly_fit_degrees-degree_j))*polyfit_coeffs[degree_j]
+    # freq_log10 = []
+    for freq_i in freq:
+        # Evaluate Transfer FUnctions at freq_i
+        yfit_val, ygpz_val = evaluate_functions(freq_i, polyfit_roots, polyfit_degrees, polyfit_coeffs)
         yfit_amp_val = abs(yfit_val)
-
-        # GPZ Transfer Function
-        # F(s = jw)  = (jw - z1) .. (jw - zn) / (jw - p1) .. (jw - pm)  = y(jw)
-        ygpz_val = 1
-        for degree_j in range(0, len(polyfit_roots)):
-            # x[0]**n * p[0] + ... + x[0] * p[n-1] + p[n] = y[0]
-            ygpz_val *= (jw - polyfit_roots[degree_j])
         ygpz_amp_val = abs(ygpz_val)
+        yfit_phase_val = cmath.phase(yfit_val)
+        ygpz_phase_val = cmath.phase(ygpz_val)
 
-        # Apply Gain
-        if freq_i == freq[0]:
-            ygpz_gain = yfit_amp_val/ygpz_amp_val
-            arg = "[fit_freq_response] yfit_amp_val %s" % yfit_amp_val
-            print(arg)
-            arg = "[fit_freq_response] ygpz_amp_val %s" % ygpz_amp_val
-            print(arg)
-            arg = "[fit_freq_response] ygpz_gain %s" % ygpz_gain
-            print(arg)
-            # print transfer function !!!
-            ygpz_transfer_function = ""
-            y_gpz_format_0 = 1
-            for degree_j in range(0, len(polyfit_roots)):
-                # x[0]**n * p[0] + ... + x[0] * p[n-1] + p[n] = y[0]
-                ygpz_transfer_function += "(jw - %s)*" % polyfit_roots[degree_j]
-                y_gpz_format_0 *= (1j*freq_i - polyfit_roots[degree_j])
-            ygpz_transfer_function = "H(jw) = %s*%s" % (ygpz_gain, ygpz_transfer_function[:-1])
-            arg = "[fit_freq_response] %s" % ygpz_transfer_function
-            print(arg)
-        # apply calculated gain to every calculated value
-        ygpz_amp_val *= ygpz_gain
+        # Apply calculated gain
+        # ygpz_amp_val *= ygpz_gain                        # Count/Volt in dBFS scale, gain to fit to data
+        ygpz_amp_val *= ygpz_gain_1_at1hz * (2**24/4.0)  # Count/Volt in dBFS scale, gain_1V_at1Hz
 
         # Create arrays to plot Amp-Freq and Phase-Freq graphs
         # Amplitude
-        ygpz_amp_dbfs.append(20*np.log10(ygpz_amp_val/(2.0**(nbits-1))))
-        yfit_amp_dbfs.append(20*np.log10(yfit_amp_val/(2.0**(nbits-1))))
+        ygpz_amp_dbfs.append(20*np.log10(ygpz_amp_val/dbfs_amplitude))
+        yfit_amp_dbfs.append(20*np.log10(yfit_amp_val/dbfs_amplitude))
+        ygpz_amp_db.append(20*np.log10(ygpz_amp_val))
+        yfit_amp_db.append(20*np.log10(yfit_amp_val))
+        # yfit_amp_dbfs.append(yfit_amp_val)
 
         # Pahse
-        y_phase_val = cmath.phase(ygpz_val)
-        y_phase_val = y_phase_val*180.0/math.pi
+        y_phase_val = ygpz_phase_val*180.0/math.pi
         ygpz_phase.append(y_phase_val)
-        y_phase_val = cmath.phase(yfit_val)
-        y_phase_val = y_phase_val*180.0/math.pi
+        y_phase_val = yfit_phase_val*180.0/math.pi
         yfit_phase.append(y_phase_val)
 
         # # Frequency axis
         # freq_log10 = 10*np.log10(freq)
 
-    arg = "[fit_freq_response] len(yfit_amp_dbfs) %s" % len(yfit_amp_dbfs)
-    print(arg)
+    # arg = "[fit_freq_response] len(yfit_amp_dbfs) %s" % len(yfit_amp_dbfs)
+    # print(arg)
     arg = "[fit_freq_response] yfit_amp_dbfs[0] %s" % yfit_amp_dbfs[0]
     print(arg)
     arg = "[fit_freq_response] yfit_amp_dbfs[len(yfit_amp_dbfs)-1] %s" % yfit_amp_dbfs[len(yfit_amp_dbfs)-1]
     print(arg)
-    arg = "[fit_freq_response] len(ygpz_amp_dbfs) %s" % len(ygpz_amp_dbfs)
-    print(arg)
+    # arg = "[fit_freq_response] len(ygpz_amp_dbfs) %s" % len(ygpz_amp_dbfs)
+    # print(arg)
     arg = "[fit_freq_response] ygpz_amp_dbfs[0] %s" % ygpz_amp_dbfs[0]
     print(arg)
     arg = "[fit_freq_response] ygpz_amp_dbfs[len(ygpz_amp_dbfs)-1] %s" % ygpz_amp_dbfs[len(ygpz_amp_dbfs)-1]
@@ -159,17 +207,29 @@ def fit_freq_response(plotphase, order, infile):
     if plotphase:
         plt.subplot(2, 1, 1)
 
+    # Plot Title
+    plot_title = 'Polyfit of %sth order \n sqrt(MSE) = %s [Counts] => %s [dBFS]' \
+                 % (polyfit_degrees, sqrt_mse, sqrt_mse_dbfs)
+
     # Plot amplitude
-    label1 = "System response"
-    # label1 = ygpz_transfer_function
-    plt.plot(freq, norm_abs_rfft_dbfs, marker='o', linestyle="", markersize=2, color='red', label=label1)
-    # plt.plot(freq, yfit_amp_dbfs, marker='o', color='yellow')
-    label2 = "Polyfit"
-    plt.plot(freq, ygpz_amp_dbfs, marker='o', color='blue', label=label2)
+    # label1 = "System response"  # label1 = ygpz_transfer_function
+    # plt.plot(freq, norm_abs_rfft_dbfs, marker='o', linestyle="", markersize=2, color='red', label=label1)
+    # label_db = "Estimated Transfer Function dB"
+    # plt.plot(freq, ygpz_amp_db, marker='o', color='yellow', markersize=3, label=label_db)
+    ind = np.argmax(freq > 0.9999)
+    val = freq[ind]
+    val2 = ygpz_amp_dbfs[ind]
+    arg = "[fit_freq_response] freq[%s] = %s => ygpz_amp_dbfs[%s] = %s" % (ind, val, ind, val2)
+    print(arg)
+    label_dbfs = "Estimated Transfer Function \n %s [Hz] => %s [dBFS]" % (val, val2)
+    plt.plot(freq, ygpz_amp_dbfs, marker='o', color='blue', markersize=3, label=label_dbfs)
+    # label3 = "Polyfit"
+    # plt.plot(freq, yfit_amp_dbfs, marker='o', color='yellow', label=label3)
     plt.title(plot_title)
-    # plt.xlabel('Frequency [Hz]')
+    plt.xlabel('Frequency [Hz]')
     # plt.xscale('log', basey=10, nonposy='clip')
-    plt.ylabel('Amplitude Response [dBFS]')
+    plt.ylabel('Amplitude Response: Counts / Volts [dBFS], %s bits' % nbits)
+    # plt.ylabel('Amplitude Response: Counts / Volts [dB]')
 
     # Leyend
     # blue_line = mlines.Line2D([], [], color='blue', marker='*', markersize=15, label='Blue stars')
@@ -219,7 +279,7 @@ def fit_freq_response(plotphase, order, infile):
         #              arrowprops=dict(facecolor='black', shrink=0.05),
         #              )
 
-    outfile = infile.replace(".MSEED", "_Polyfit.png")
+    outfile = infile.replace(".MSEED", "_polyfit.png")
     arg = "[fit_freq_response] saving file %s .." % outfile
     print(arg)
     plt.savefig(outfile)

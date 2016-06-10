@@ -92,7 +92,8 @@ def generate_signal(sigtype):
         signal_frequency = 5     # frequency of the signal [Hz]
         signal_amplitude = (2**23)
         # Si no pongo ruido hay problemas de -inf en log10 (problemas de precision float)
-        y_signal = signal_amplitude*np.sin(2*np.pi*signal_frequency*t_time) + randint(-20, 0)
+        # y_signal = signal_amplitude*np.sin(2*np.pi*signal_frequency*t_time) + randint(-20, 0)
+        y_signal = signal_amplitude*np.sin(2*np.pi*signal_frequency*t_time)
         arg = "len(y_signal) = %s | y_signal = %s" % (len(y_signal), y_signal)
         print(arg)
 
@@ -184,8 +185,38 @@ def generate_signal(sigtype):
         arg = "len(y_signal) = %s | y_signal = %s" % (len(y_signal), y_signal)
         print(arg)
 
+    elif sigtype == "dc":
+        # time array
+        sampling_rate = 100.0      # sampling rate
+        sampling_interval = 1.0/sampling_rate     # sampling interval
+        signal_elapsed_secs = 5
+        t_time = np.arange(0, signal_elapsed_secs, sampling_interval)     # time vector
+
+        # signal array
+        signal_amplitude = (2**23)
+        # signal_amplitude = 749623
+        y_signal = []
+        for sample_i in range(0, len(t_time)):
+                y_signal.append(signal_amplitude)
+
+    elif sigtype == "square":
+        # time array
+        sampling_rate = 100.0      # sampling rate
+        sampling_interval = 1.0/sampling_rate     # sampling interval
+        signal_elapsed_secs = 5
+        t_time = np.arange(0, signal_elapsed_secs, sampling_interval)     # time vector
+
+        # signal array
+        signal_amplitude = (2**23)
+        ud_bit = 1
+        y_signal = []
+        for sample_i in range(0, len(t_time)):
+            if sample_i % 50 == 0:
+                ud_bit *= -1
+            y_signal.append(ud_bit*signal_amplitude)
+
     else:
-        arg = "Unknown sigtype %s" % (sigtype)
+        arg = "Unknown sigtype %s" % sigtype
         print(arg)
         exit(0)
 

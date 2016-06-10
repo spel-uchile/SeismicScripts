@@ -18,10 +18,10 @@ def freq_response(sigtype, order):
     y_amp = []
     y_phase = []
     frequencies = []
-    freq_step = 0.25
+    freq_step = 0.0025
     sigtype_title = 'Empty Titel'
     freq_cutoff = 0
-    max_freq = 50
+    max_freq = 44
     if sigtype == "my":
         for freq_i in range(1, int(max_freq/freq_step)):
             sigtype_title = 'My function \n H(jw) = '
@@ -34,6 +34,79 @@ def freq_response(sigtype, order):
             w2 = 2.0*math.pi*40
             # y_val = ((jw - 10)*(jw - 5))/((jw - 3))
             y_val = ((w1 / (jw + w1))**7)
+            y_amp_val = abs(y_val)
+
+            # Amplitude
+            y_amp.append(y_amp_val)
+
+            # Pahse
+            y_phase_val = cmath.phase(y_val)
+            y_phase_val = y_phase_val*180.0/math.pi
+            y_phase.append(y_phase_val)
+
+            # Frequency axis
+            frequencies.append(freq_val)
+
+            # Print info arround cut-off frequency
+            # if freq_cutoff - 0.5 <= freq_val <= freq_cutoff + 0.5:
+            if freq_cutoff == freq_val or freq_val == 1 or freq_val % 10 == 0:
+                arg = "[freq_response] log10(%s) = %s [Hz] | 20*log10|%s| = %s [dB] | Phase(y) = %d"\
+                      % (freq_val, np.log10(freq_val), y_amp_val, 20*np.log10(y_amp_val), y_phase_val)
+                print(arg)
+
+    elif sigtype == "regSARA":
+        for freq_i in range(1, int(max_freq/freq_step)):
+            sigtype_title = 'SARA Transfer Function\n H(jw)'
+            freq_val = freq_step*freq_i
+            jw = 1j*(2.0*math.pi*freq_val)
+
+            # F(jw)
+            freq_cutoff = 1.0
+
+            y_val = (float('2.41083317014e-10')) * (jw - 563.732843616j) * (jw - 282.250600078j) * \
+                    (jw - (-132.438457998+103.355980485j)) * (jw - (132.438457998+103.355980485j))
+            # y_val *= (2**-23)
+            # y_val *= (2**23)
+            # y_val *= (2**24)/4.0
+            # y_val /= (4.0)
+            # y_val *= (2**-23)
+            y_val *= (2**24)/4.0
+            y_amp_val = abs(y_val)
+
+            # Amplitude
+            y_amp.append(y_amp_val)
+
+            # Pahse
+            y_val = 1.0     # there is no phase delay in ADC systems
+            y_phase_val = cmath.phase(y_val)
+            y_phase_val = y_phase_val*180.0/math.pi
+            y_phase.append(y_phase_val)
+
+            # Frequency axis
+            frequencies.append(freq_val)
+
+            # Print info arround cut-off frequency
+            # if freq_cutoff - 0.5 <= freq_val <= freq_cutoff + 0.5:
+            if freq_cutoff == freq_val or freq_val == 1 or freq_val % 10 == 0:
+                arg = "[freq_response] log10(%s) = %s [Hz] | 20*log10|%s| = %s [dB] | Phase(y) = %d"\
+                      % (freq_val, np.log10(freq_val), y_amp_val, 20*np.log10(y_amp_val), y_phase_val)
+                print(arg)
+
+    elif sigtype == "trillium40":
+        for freq_i in range(1, int(max_freq/freq_step)):
+            sigtype_title = 'Trillium 40 Transfer Function\n H(jw)'
+            freq_val = freq_step*freq_i
+            jw = 1j*(2.0*math.pi*freq_val)
+
+            # F(jw)
+            freq_cutoff = 1.0
+            y_gain = float('1.104e5')   # * 1553.0  # gain 1553.0 [V / m/s]
+            y_zeros = (jw - 0) * (jw - 0) * (jw + 68.8) * (jw + 323) * (jw + 2530)
+            y_poles = (jw - (-0.1103 + 1j*0.1110)) * (jw - (-0.1103 - 1j*0.1110)) * \
+                      (jw + 86.3) * \
+                      (jw - (-241 + 1j*178)) * (jw - (-241 - 1j*178)) * \
+                      (jw - (-535 + 1j*719)) * (jw - (-535 - 1j*719))
+            y_val = y_gain*y_zeros/y_poles
             y_amp_val = abs(y_val)
 
             # Amplitude
@@ -127,7 +200,7 @@ def freq_response(sigtype, order):
             p1 = p1*2.0*math.pi*freq_cutoff
             p2 = d - 1j*math.sqrt((1-d**2)**2)
             p2 = p2*2.0*math.pi*freq_cutoff
-            y_val = ((jw)*(jw))/((jw-p1)*(jw-p2))
+            y_val = ((jw - 0)*(jw - 0))/((jw-p1)*(jw-p2))
             y_amp_val = abs(y_val)
 
             # Amplitude
@@ -150,7 +223,7 @@ def freq_response(sigtype, order):
 
     # Create arrays to plot Amp-Freq and Phase-Freq graphs
     # Amplitude
-    y_amp_log10 = 20*np.log10(y_amp)
+    y_amp_db = 20*np.log10(y_amp)
     # Frequency axis
     frequencies_log10 = 10*np.log10(frequencies)
 
@@ -158,15 +231,15 @@ def freq_response(sigtype, order):
     plt.subplot(2, 1, 1)
     # print len(ax)
 
-    # ax[0].plot(frequencies_log10, y_amp_log10, marker='o')
-    plt.plot(frequencies, y_amp_log10, marker='o')
+    # ax[0].plot(frequencies_log10, y_amp_db, marker='o')
+    plt.plot(frequencies, y_amp_db, marker='o')
     plt.title(sigtype_title)
     # plt.xlabel('Frequency [Hz]')
     # ax[0].xscale('log', basey=10, nonposy='clip')
     # plt.xscale('log', basey=10, nonposy='clip')
     plt.ylabel('Amplitude Response [dB]')
     # Extra info (max Freq, dBFS,  etc)
-    y_axis = np.float64(y_amp_log10)
+    y_axis = np.float64(y_amp_db)
     x_axis = np.float64(frequencies)
     y_axis_argmax = int(freq_cutoff/freq_step) - 1
     y_axis_max = y_axis[y_axis_argmax]
@@ -176,7 +249,7 @@ def freq_response(sigtype, order):
     print('y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
     print('y_axis_max() = %s' % y_axis_max)
     arg_freqinfo = '%s [Hz]\n %s [dB]' % (x_axis[y_axis_argmax], y_axis_max)
-    plt.annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]-0.5, y_axis_max-0.5),
+    plt.annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax], y_axis_max),
                  xytext=(x_axis_min+1, y_axis_min+1),
                  arrowprops=dict(facecolor='black', shrink=0.05),
                  )
@@ -212,7 +285,7 @@ def freq_response(sigtype, order):
     # plt.show()
     plt.clf()
 
-    return frequencies, y_amp_log10, y_phase
+    return frequencies, y_amp_db, y_phase
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Plot given file(s) (obspy wrapper)')

@@ -109,7 +109,7 @@ class ApplyToFolder():
             pseudo_signal = 0
             pseudo_noise = 0
             for sample_i in range(0, len(samples)):
-                if abs(samples[sample_i]) <= 3.0*samples_std:
+                if abs(samples[sample_i]) <= 3.0*samples_std + samples_mean:
                     pseudo_noise += abs(samples[sample_i])
                 else:
                     pseudo_signal += abs(samples[sample_i])

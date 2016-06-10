@@ -9,6 +9,7 @@ from os.path import isfile, join
 
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
 
 parser = argparse.ArgumentParser(description='Obspy wrapper: Apply \"FFT\" operation for infolder')
 parser.add_argument('directory', help='directory to use', action='store')
@@ -70,19 +71,23 @@ for file_i in infolder_files:
 
     # 4) Generate Normalized Fourier transform it to dBFS
     norm_abs_rfft = 2.0*abs(spec)/len(dataonly)
-    norm_abs_rfft_dbfs = norm_abs_rfft
     len_norm_abs_rfft = len(norm_abs_rfft)
+    norm_abs_rfft_dbfs = copy.copy(norm_abs_rfft)
     for i in range(0, len_norm_abs_rfft):
         ratio = (1.0*norm_abs_rfft[i])/(2.0**(nbits-1))
+        # ratio = (1.0*norm_abs_rfft[i])/(2.0**(nbits-1)*np.sqrt(2))
+        if 0.95 <= ratio <= 1.05:
+            print('ratio %s' % ratio)
         # ratio = (1.0*norm_abs_rfft[i])
-        norm_abs_rfft_dbfs[i] = 20.0*np.log10(ratio)
+        norm_abs_rfft_dbfs[i] = 20.0*np.log10(abs(ratio))
     print('norm_abs_rfft_dbfs (24-bit ADC is assumed !!) %s' % norm_abs_rfft_dbfs)
 
     # 5) Plot
+    plt.clf()
     plt.plot(freq, norm_abs_rfft_dbfs, marker='o', linestyle="-", markersize=4)
-    plt.title('FFT')
-    plt.xlabel('Freq (Hz)')
-    plt.ylabel('Normalized |Y(f)| relative to Full Scale [dBFS]')
+    plt.title('FFT - Energy Spectral Density')
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('Amplitude Response [dBFS], %s bits' % nbits)
     # Extra info (max Freq, dBFS,  etc)
     y_axis = norm_abs_rfft_dbfs
     x_axis = freq
@@ -93,7 +98,7 @@ for file_i in infolder_files:
     print('y_axis_max() = %s' % y_axis_max)
     arg_freqinfo = ' %s [Hz]\n %s [dBFS]' % (x_axis[y_axis_argmax], y_axis_max)
     plt.annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+1, y_axis_max),
-                 xytext=(x_axis[y_axis_argmax]+4, y_axis_max-10),
+                 xytext=(x_axis[y_axis_argmax]+4, y_axis_max-20),
                  arrowprops=dict(facecolor='black', shrink=0.05),
                  )
 
