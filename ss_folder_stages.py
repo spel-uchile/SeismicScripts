@@ -20,7 +20,7 @@ class ApplyToFolder():
         pass
 
     @staticmethod
-    def apply_to_folder(infolder):
+    def apply_to_folder(infolder, str1, str2):
         print "[apply_to_folder] infolder %s " % infolder
         print "**********************************************************"
 
@@ -42,7 +42,7 @@ class ApplyToFolder():
             try:
                 infile_i = os.path.abspath(xxx_files[i])
                 print "[apply_to_folder] Processing infile_i %s .." % infile_i
-                ApplyToFolder.apply_to_file(infile=infile_i)
+                ApplyToFolder.apply_to_file(infile=infile_i, str1=str1, str2=str2)
                 print "Next file >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"    # separate infile_i
             except IndexError:
                 pass
@@ -52,44 +52,46 @@ class ApplyToFolder():
         print "Done"
 
     @staticmethod
-    def apply_to_file(infile):
-        # 1) Make sure user inputs are correct
-        infile = os.path.normcase(infile)
-        infile = os.path.normpath(infile)
-        infile = os.path.realpath(infile)
-        print(infile)
+    def apply_to_file(infile, str1, str2):
+        if (str1 in str(infile)) and (str2 in str(infile)):
+            # 1) Make sure user inputs are correct
+            infile = os.path.normcase(infile)
+            infile = os.path.normpath(infile)
+            infile = os.path.realpath(infile)
+            print(infile)
 
-        # Add noise
-        for noise_i in range(1, 10):
-
-            # Construct Stream object
+            # >> Construct Stream object
             st = read(infile)
 
-            # Add gaussian noise
-            noise_std_dev = noise_i*4
-            arg = "[apply_to_file] noise_std_dev %s" % noise_std_dev
-            print(arg)
-            for i in range(0, len(st)):
-                samples = st[i].data
-                samples = np.int32(samples)
-                for sample_i in range(0, len(samples)):
-                    samples[sample_i] += random.gauss(0, noise_std_dev)
-                st[i].data = samples
-                # print(st[i])
-                # print(st[i].data)
+            for trace_i in range(0, len(st)):
+                # >> Substract DC component
+                st[trace_i].data = np.int32(st[trace_i].data - np.mean(st[trace_i].data))
 
-            # Save file
-            infile_ext = "_%s.MSEED" % noise_std_dev
-            outfile = infile
-            outfile = outfile.replace(".MSEED", infile_ext)
-            st.write(filename=outfile, format='MSEED')
-            # st = Stream([Trace(data=st.data, header=st.stats)])
-            # st.write(infile, format='MSEED', encoding=11, reclen=256, byteorder='>')
+                # >> lowpass filter
+                # cutoff_freq = 45
+                # st.filter("lowpass", freq=int(cutoff_freq), corners=10)   # , zerophase=True
+
+                # >>Add AWGN noise
+                # noise_std_dev = 10
+                # arg = "[apply_to_file] noise_std_dev %s" % noise_std_dev
+                # print(arg)
+                # samples = st[trace_i].data
+                # samples = np.int32(samples)
+                # for sample_i in range(0, len(samples)):
+                #     samples[sample_i] += random.gauss(0, noise_std_dev)
+                # st[trace_i].data = samples
+
+                # >>
+
+            # >> Save changes
+            st.write(infile, format='MSEED', encoding=11, reclen=256, byteorder='>')
 
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Apply function xxx to corresponding files .yyy in the given folder')
+    parser.add_argument('--str1', action='store', help='str1 to filter', default='MSEED')    # , required=True)
+    parser.add_argument('--str2', action='store', help='str2 to filter', default='MSEED')    # , required=True)
     parser.add_argument('directory', help='directory to use', action='store')
     args = parser.parse_args()
 
@@ -98,5 +100,5 @@ if __name__ == '__main__':
     uinfolder = os.path.normpath(uinfolder)
     uinfolder = os.path.realpath(uinfolder)
 
-    ApplyToFolder.apply_to_folder(uinfolder)
+    ApplyToFolder.apply_to_folder(infolder=uinfolder, str1=args.str1, str2=args.str2)
 

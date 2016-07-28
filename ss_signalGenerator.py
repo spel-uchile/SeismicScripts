@@ -9,6 +9,7 @@ import numpy as np
 # import math
 from obspy.core import read
 from obspy.core import Trace, Stream, UTCDateTime
+import random
 import ss_fft
 import ss_plot
 from random import uniform, randint
@@ -174,7 +175,7 @@ def generate_signal(sigtype):
 
         # signal array
         signal_amplitude = 10    # (2**24)
-        signal_mean = 3
+        signal_mean = 0
         y_signal = []
         for sample_i in range(0, len(t_time)):
             y_signal.append(signal_mean)
@@ -215,12 +216,110 @@ def generate_signal(sigtype):
                 ud_bit *= -1
             y_signal.append(ud_bit*signal_amplitude)
 
+    elif sigtype == "awgn":
+        # time array
+        sampling_rate = 100.0      # sampling rate
+        sampling_interval = 1.0/sampling_rate     # sampling interval
+        signal_elapsed_secs = 60
+        t_time = np.arange(0, signal_elapsed_secs, sampling_interval)     # time vector
+
+        # signal array
+        y_signal = np.random.normal(0, 10, sampling_rate*signal_elapsed_secs)
+
+        # for sample_i in range(0, len(t_time)):
+        #     random_i = np.random.normal(0, 1)
+        #     y_signal.append(random_i)
+    elif sigtype == "awgn_stacked":
+        # time array
+        sampling_rate = 100.0      # sampling rate
+        sampling_interval = 1.0/sampling_rate     # sampling interval
+        signal_elapsed_secs = 60
+        t_time = np.arange(0, signal_elapsed_secs, sampling_interval)     # time vector
+
+        # signal array
+        num_stacked = 10-1
+        param_mean = 0
+        param_variance = 10
+        y_signal = np.random.normal(param_mean, param_variance, sampling_rate*signal_elapsed_secs)
+
+        for iter in range(0, num_stacked):
+            y_signal += np.random.normal(param_mean, param_variance, sampling_rate*signal_elapsed_secs)
+            # random.seed()
+            # for sample_i in range(0, len(t_time)):
+                # random_i = random.normalvariate(param_mean, param_variance)
+                # # random_i = random.gauss(param_mean, param_variance)
+                # y_signal[sample_i] += random_i + y_signal[sample_i]
+                # # y_signal[sample_i] += random_i
+        y_signal *= 1.0
+        y_signal /= (num_stacked+1)
+        arg = "np.var(y_signal) %s" % np.var(y_signal)
+        print(arg)
+        # y_signal = 1.0*y_signal
+        # y_signal /= np.var(y_signal)
+
+    elif sigtype == "awgnsine":
+        # time array
+        sampling_rate = 100.0      # sampling rate
+        sampling_interval = 1.0/sampling_rate     # sampling interval
+        signal_elapsed_secs = 60
+        t_time = np.arange(0, signal_elapsed_secs, sampling_interval)     # time vector
+
+        # signal array
+        # y_signal = np.random.normal(0, 10, sampling_rate*signal_elapsed_secs)
+        signal_amplitude = 10
+        signal_frequency = 1
+        param_mean = 0
+        param_variance = 100
+        y_signal = signal_amplitude*np.sin(2*np.pi*signal_frequency*t_time) + \
+            np.random.normal(param_mean, param_variance, sampling_rate*signal_elapsed_secs)
+
+        # for sample_i in range(0, len(t_time)):
+        #     random_i = np.random.normal(0, 1)
+        #     y_signal.append(random_i)
+    elif sigtype == "awgnsine_stacked":
+        # time array
+        sampling_rate = 100.0      # sampling rate
+        sampling_interval = 1.0/sampling_rate     # sampling interval
+        signal_elapsed_secs = 60
+        t_time = np.arange(0, signal_elapsed_secs, sampling_interval)     # time vector
+
+        # signal array
+        # y_signal = np.random.normal(0, 10, sampling_rate*signal_elapsed_secs)
+        signal_amplitude = 10
+        signal_frequency = 1
+        param_mean = 0
+        param_variance = 100
+        y_signal = signal_amplitude*np.sin(2*np.pi*signal_frequency*t_time) + \
+            np.random.normal(param_mean, param_variance, sampling_rate*signal_elapsed_secs)
+
+        # signal array
+        num_stacked = 100 - 1
+        param_mean = 0
+        param_variance = 10
+
+        for iter in range(0, num_stacked):
+            y_signal += signal_amplitude*np.sin(2*np.pi*signal_frequency*t_time) + \
+                np.random.normal(param_mean, param_variance, sampling_rate*signal_elapsed_secs)
+            # random.seed()
+            # for sample_i in range(0, len(t_time)):
+                # random_i = random.normalvariate(param_mean, param_variance)
+                # # random_i = random.gauss(param_mean, param_variance)
+                # y_signal[sample_i] += random_i + y_signal[sample_i]
+                # # y_signal[sample_i] += random_i
+        y_signal *= 1.0
+        y_signal /= (num_stacked+1)
+        arg = "np.var(y_signal) %s" % np.var(y_signal)
+        print(arg)
+        # y_signal = 1.0*y_signal
+        # y_signal /= np.var(y_signal)
+
     else:
         arg = "Unknown sigtype %s" % sigtype
         print(arg)
         exit(0)
 
     #3) Save to MSEED in channel SHZ
+    # data = np.float64(y_signal)
     data = np.int32(y_signal)
     channel = 'SHZ'
     # Fill header attributes
@@ -237,83 +336,6 @@ def generate_signal(sigtype):
     st1 = read(outfile)
     arg = "[generate_signal] MSEED created: %s" % st1[0]
     print(arg)
-
-    # # 4) Plot
-    # # Plot Amp-Freq and Phase-Freq graphs
-    # fig, ax = plt.subplots(3, 1)
-    #
-    # # Create arrays to plot Amp-Freq and Phase-Freq graphs
-    # # Amplitude
-    # AmpY_arr.append(AmpY)
-    # log10_AmpY = 20*math.log10(AmpY)
-    # log10_AmpY_arr.append(log10_AmpY)
-    # # Frequency axis
-    # f_arr.append(f)
-    # log10_f = 10*math.log10(f)
-    # log10_f_arr.append(log10_f)
-    # # Pahse
-    # PhaseY = cmath.phase(Y)
-    # PhaseY = PhaseY*180.0/math.pi
-    # PhaseY_arr.append(PhaseY)
-    #
-    # # Plot
-    # ax[0].plot(log10_f_arr, log10_AmpY_arr, marker='o')
-    # # ax[0].set_title('Frequency Response')
-    # ax[0].set_xlabel('Frequency [log Hz]')
-    # ax[0].set_ylabel('Amplitude Response [dB]')
-    # # Extra info (max Freq, dBFS,  etc)
-    # # y_axis = norm_abs_rfft_dbfs_SARA
-    # # x_axis = freq_SARA
-    # # y_axis_argmax = y_axis.argmax()
-    # # y_axis_max = y_axis.max()
-    # # print('y_axis_argmax = %s' % y_axis_argmax)
-    # # print('y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
-    # # print('y_axis_max() = %s' % y_axis_max)
-    # # arg_freqinfo = ' %s [Hz]\n %s [dbFS]' % (x_axis[y_axis_argmax], y_axis_max)
-    # # ax[0].annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+0.003, y_axis_max),
-    # #                xytext=(x_axis[y_axis_argmax]+3, y_axis_max*1.3),
-    # #                arrowprops=dict(facecolor='black', shrink=0.05),
-    # #                )
-    #
-    # ax[1].plot(log10_f_arr, log10_AmpY_arr, marker='o')
-    # # ax[0].set_title('Frequency Response')
-    # ax[1].set_xlabel('Frequency [log Hz]')
-    # ax[1].set_ylabel('Amplitude Response [dB]')
-    # # Extra info (max Freq, dBFS,  etc)
-    # # y_axis = norm_abs_rfft_dbfs_SARA
-    # # x_axis = freq_SARA
-    # # y_axis_argmax = y_axis.argmax()
-    # # y_axis_max = y_axis.max()
-    # # print('y_axis_argmax = %s' % y_axis_argmax)
-    # # print('y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
-    # # print('y_axis_max() = %s' % y_axis_max)
-    # # arg_freqinfo = ' %s [Hz]\n %s [dbFS]' % (x_axis[y_axis_argmax], y_axis_max)
-    # # ax[0].annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+0.003, y_axis_max),
-    # #                xytext=(x_axis[y_axis_argmax]+3, y_axis_max*1.3),
-    # #                arrowprops=dict(facecolor='black', shrink=0.05),
-    # #                )
-    #
-    # ax[2].plot(log10_f_arr, PhaseY_arr, marker='o')
-    # ax[2].set_xlabel('Frequency [log Hz]')
-    # ax[2].set_ylabel('Phase Response[Hz]')
-    # # Extra info (max Freq, dBFS,  etc)
-    # # y_axis = norm_abs_rfft_dbfs_SPQR
-    # # x_axis = freq_SPQR
-    # # y_axis_argmax = y_axis.argmax()
-    # # y_axis_max = y_axis.max()
-    # # print('y_axis_argmax = %s' % y_axis_argmax)
-    # # print('y_axis[%s] = %s' % (y_axis_argmax, y_axis[y_axis_argmax]))
-    # # print('y_axis_max() = %s' % y_axis_max)
-    # # arg_freqinfo = ' %s [Hz]\n %s [dbFS]' % (x_axis[y_axis_argmax], y_axis_max)
-    # # ax[1].annotate(arg_freqinfo, xy=(x_axis[y_axis_argmax]+0.003, y_axis_max),
-    # #                xytext=(x_axis[y_axis_argmax]+3, y_axis_max*1.3),
-    # #                arrowprops=dict(facecolor='black', shrink=0.05),
-    # #                )
-    #
-    # outfile = outfile.replace(".MSEED", "_TimeAmpPhase.png")
-    # plt.savefig(outfile)
-    # plt.show()
-    # plt.clf()
 
     return outfile
 

@@ -56,8 +56,8 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Apply function xxx to corresponding files .yyy in the given folder')
     parser.add_argument('directory', help='directory to use', action='store')
-    parser.add_argument('--str1', action='store', help='str2 to filter', required=True)
-    parser.add_argument('--str2', action='store', help='str2 to filter', required=True)
+    parser.add_argument('--str1', action='store', help='str1 to filter', default='MSEED')    # , required=True)
+    parser.add_argument('--str2', action='store', help='str2 to filter', default='MSEED')    # , required=True)
     args = parser.parse_args()
 
     uinfolder = args.directory
@@ -65,6 +65,4 @@ if __name__ == '__main__':
     uinfolder = os.path.normpath(uinfolder)
     uinfolder = os.path.realpath(uinfolder)
 
-    ApplyToFolder.apply_to_folder(infolder=uinfolder,
-                                  str1=args.str1,
-                                  str2=args.str2)
+    ApplyToFolder.apply_to_folder(infolder=uinfolder, str1=args.str1, str2=args.str2)

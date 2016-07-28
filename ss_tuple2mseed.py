@@ -7,6 +7,7 @@ from obspy.core import read
 from obspy.core import Trace, Stream, UTCDateTime
 import numpy as np
 import dateutil.parser
+from datetime import datetime, timedelta
 
 
 class TupleParser():
@@ -15,13 +16,19 @@ class TupleParser():
         pass
 
     @staticmethod
-    def get_data_and_correct_missing_samples(infile_path, starttime, sps):
+    def get_and_correct_missing_samples(infile_path, starttime, sps):
         tuple_path = infile_path
         filename_date = starttime
-        header_sps = sps
 
         matrix = TupleParser.load_file_to_matrix(pathfile=tuple_path, ncol=5, skipnrows=2)
         # matrix = TupleParser.discard_oversamples(matrix)
+        print "*****************************************************"
+        print "[TupleParser.get_and_correct_missing_samples] Before correction:"
+        print "[TupleParser.get_and_correct_missing_samples] matrix[0] = %s" % matrix[0]
+        print "[TupleParser.get_and_correct_missing_samples] matrix[1] = %s" % matrix[1]
+        print "[TupleParser.get_and_correct_missing_samples] matrix[2] = %s" % matrix[2]
+        print "[TupleParser.get_and_correct_missing_samples] matrix[%s] = %s" % \
+              (len(matrix) - 1, matrix[len(matrix) - 1])
 
         # 4) Check correct SPS over all the file content and re-pack into Tuple object
         timestamps = []
@@ -30,111 +37,137 @@ class TupleParser():
         ch3_samples = []
         ch4_samples = []
 
-        # New format
-        # 15:00:00.010000 0 -2003 1371 -46306
-        #datetime.strptime(matrix[0][0], "%H:%M:%S.%fZ")
-        current_sec = dateutil.parser.parse(matrix[0][0])
-        # Append samples to channels
-        val_datetime = matrix[0][0]
-        timestamps.append(val_datetime)
-        ch1_samples.append(matrix[0][1])
-        ch2_samples.append(matrix[0][2])
-        ch3_samples.append(matrix[0][3])
-        ch4_samples.append(matrix[0][4])
+        print "*****************************************************"
+        first_microsec_sps = timedelta(microseconds=0).microseconds
+        print "first_microsec_sps %s" % first_microsec_sps
+        second_microsec_normal_sps = timedelta(microseconds=(1000000/sps)).microseconds
+        print "second_microsec_normal_sps %s" % second_microsec_normal_sps
+        second_microsec_1missing_sps = timedelta(microseconds=(1000000/(sps-1))).microseconds
+        print "second_microsec_1missing_sps %s" % second_microsec_1missing_sps
+        second_microsec_1extra_sps = timedelta(microseconds=(1000000/(sps+1))).microseconds
+        print "second_microsec_1extra_sps %s" % second_microsec_1extra_sps
+        print "*****************************************************"
+        sample_i = 0
+        seconds_cnt = 0
+        missing_sample_cnt = 0
+        continuity_error_cnt = 0
+        extra_sample_cnt = 0
+        while True:
+            # >> Check first sample
+            first_timestamp = dateutil.parser.parse(matrix[sample_i][0])
+            # print "Checking => first_timestamp %s" % first_timestamp
 
-        sample_cnt = 1
-        issues_cnt = 0
-        print "[TupleParser.get_data_and_correct_missing_samples] current_sec %s " % current_sec
-        print "[TupleParser.get_data_and_correct_missing_samples] sample_cnt %s " % sample_cnt
-        for i in range(1, len(matrix)):
-            sec_i = dateutil.parser.parse(matrix[i][0])
-            sample_cnt += 1
-            # print "sec_i %s " % sec_i
-            if sec_i.second != current_sec.second:
-                sample_cnt -= 1     # discount extra sample (from next second)
-                if sample_cnt == header_sps:
-                    # print "[TupleParser.get_data_and_correct_missing_samples] ***************************************"
-                    # print "[TupleParser.get_data_and_correct_missing_samples] %s != %s [sec_i | current_sec] " %\
-                    #       (sec_i.second, current_sec.second)
-                    # print "[TupleParser.get_data_and_correct_missing_samples] %s == %s [sample_cnt | header_sps]" %\
-                    #       (sample_cnt, self.header_sps)
-                    # print "[TupleParser.get_data_and_correct_missing_samples] sec_i %s " % sec_i
-                    # print "[TupleParser.get_data_and_correct_missing_samples] current_sec %s " % current_sec
-                    # print "[TupleParser.get_data_and_correct_missing_samples] sample_cnt %s " % sample_cnt
-                    # print "[TupleParser.get_data_and_correct_missing_samples] matrix[%s] %s " % (i, matrix[i])
-                    pass
-                elif sample_cnt == header_sps - 1:
-                    # print "[TupleParser.get_data_and_correct_missing_samples] ***************************************"
-                    # print "[TupleParser.get_data_and_correct_missing_samples] %s != %s [sec_i | current_sec] " % \
-                    #       (sec_i.second, current_sec.second)
-                    # print "[TupleParser.get_data_and_correct_missing_samples] %s == %s - 1 [sample_cnt|header_sps-1]"\
-                    #       % (sample_cnt, header_sps)
-                    # print "[TupleParser.get_data_and_correct_missing_samples] sec_i %s " % sec_i
-                    # print "[TupleParser.get_data_and_correct_missing_samples] current_sec %s " % current_sec
-                    # print "[TupleParser.get_data_and_correct_missing_samples] sample_cnt %s " % sample_cnt
-                    # print "[TupleParser.get_data_and_correct_missing_samples] matrix[%s] %s " % (i, matrix[i])
+            # >> Check if all is right with the first sample
+            if first_timestamp.microsecond != first_microsec_sps:
+                print "Error at %s => %s != %s [first_timestamp.microsecond != first_microsec_sps]" %\
+                      (first_timestamp, first_timestamp.microsecond, first_microsec_sps)
+                raise RuntimeError
 
-                    # Add sample number 100 (repeat previous sample)
-                    # print "[TupleParser.get_data_and_correct_missing_samples] Adding missing sample .."
-                    last_sec = dateutil.parser.parse(matrix[i-1][0])
-                    extra_time = last_sec + (sec_i - last_sec)/2
-                    extra_time = str(extra_time)[11:]
-                    val_datetime = "%sT%s" % (filename_date, extra_time)
-                    # print "[TupleParser.get_data_and_correct_missing_samples] val_datetime %s " % val_datetime
-                    timestamps.append(val_datetime)
-                    val = (int(matrix[i][1]) + int(matrix[i-1][1]))/2
-                    # print "[TupleParser.get_data_and_correct_missing_samples] ch1 %s " % val
-                    ch1_samples.append(val)
-                    val = (int(matrix[i][2]) + int(matrix[i-1][2]))/2
-                    # print "[TupleParser.get_data_and_correct_missing_samples] ch2 %s " % val
-                    ch2_samples.append(val)
-                    val = (int(matrix[i][3]) + int(matrix[i-1][3]))/2
-                    # print "[TupleParser.get_data_and_correct_missing_samples] ch3 %s " % val
-                    ch3_samples.append(val)
-                    val = (int(matrix[i][4]) + int(matrix[i-1][4]))/2
-                    # print "[TupleParser.get_data_and_correct_missing_samples] ch4 %s " % val
-                    ch4_samples.append(val)
-
-                    issues_cnt += 1
-                else:
-                    print "[TupleParser.get_data_and_correct_missing_samples] *****************************************"
-                    print "[TupleParser.get_data_and_correct_missing_samples] %s != %s [sec_i | current_sec] " %\
-                          (sec_i.second, current_sec.second)
-                    print "[TupleParser.get_data_and_correct_missing_samples] %s != %s - 1 [sample_cnt | header_sps-1]"\
-                          % (sample_cnt, header_sps)
-                    print "[TupleParser.get_data_and_correct_missing_samples] sec_i %s " % sec_i
-                    print "[TupleParser.get_data_and_correct_missing_samples] current_sec %s " % current_sec
-                    print "[TupleParser.get_data_and_correct_missing_samples] sample_cnt %s " % sample_cnt
-                    print "[TupleParser.get_data_and_correct_missing_samples] matrix[%s] %s " % (i, matrix[i])
-                    issues_cnt += 1
-
-                # Update counters
-                current_sec = sec_i
-                sample_cnt = 1
-
-            # Append samples to channels
-            val_datetime = "%sT%s" % (filename_date, matrix[i][0])
+            # >> Append first sample
+            val_datetime = "%sT%s" % (filename_date, matrix[sample_i][0])
             timestamps.append(val_datetime)
-            ch1_samples.append(matrix[i][1])
-            ch2_samples.append(matrix[i][2])
-            ch3_samples.append(matrix[i][3])
-            ch4_samples.append(matrix[i][4])
+            ch1_samples.append(matrix[sample_i][1])
+            ch2_samples.append(matrix[sample_i][2])
+            ch3_samples.append(matrix[sample_i][3])
+            ch4_samples.append(matrix[sample_i][4])
 
-        print "[TupleParser.get_data_and_correct_missing_samples] *****************************************************"
-        print "[TupleParser.get_data_and_correct_missing_samples] issues_cnt %s (missing samples) " % issues_cnt
+            # >> Check if second sample is of type "sps-1" or "sps" or "sps+1"
+            sample_i += 1
+            second_timestamp = dateutil.parser.parse(matrix[sample_i][0])
+            # print "Checking => second_timestamp %s" % second_timestamp
+            if second_timestamp.microsecond == second_microsec_normal_sps:
+                # >> Append "second" sample
+                val_datetime = "%sT%s" % (filename_date, matrix[sample_i][0])
+                timestamps.append(val_datetime)
+                ch1_samples.append(matrix[sample_i][1])
+                ch2_samples.append(matrix[sample_i][2])
+                ch3_samples.append(matrix[sample_i][3])
+                ch4_samples.append(matrix[sample_i][4])
+            elif second_timestamp.microsecond == second_microsec_1extra_sps:
+                # >> Correct extra sample
+                # .. do not append
 
-        # display a few samples
-        print "[TupleParser.get_data_and_correct_missing_samples] matrix[0] = %s" % matrix[0]
-        print "[TupleParser.get_data_and_correct_missing_samples] matrix[1] = %s" % matrix[1]
-        print "[TupleParser.get_data_and_correct_missing_samples] matrix[2] = %s" % matrix[2]
-        print "[TupleParser.get_data_and_correct_missing_samples] *****************************************************"
+                # >> Report issue
+                extra_sample_cnt += 1
+                # print "Correcting extra sample => extra_sample_cnt %s " % extra_sample_cnt
+                # print "*****************************************************"
+                pass
+            elif second_timestamp.microsecond == second_microsec_1missing_sps:
+                # >> Append missing sample as missing_sample = (second_sample + first_sample) / 2
+                val = (int(matrix[sample_i][1]) + int(matrix[sample_i-1][1]))/2
+                # print "[TupleParser.get_and_correct_missing_samples] ch1 %s " % val
+                ch1_samples.append(val)
+                val = (int(matrix[sample_i][2]) + int(matrix[sample_i-1][2]))/2
+                # print "[TupleParser.get_and_correct_missing_samples] ch2 %s " % val
+                ch2_samples.append(val)
+                val = (int(matrix[sample_i][3]) + int(matrix[sample_i-1][3]))/2
+                # print "[TupleParser.get_and_correct_missing_samples] ch3 %s " % val
+                ch3_samples.append(val)
+                val = (int(matrix[sample_i][4]) + int(matrix[sample_i-1][4]))/2
+                # print "[TupleParser.get_and_correct_missing_samples] ch4 %s " % val
+                ch4_samples.append(val)
 
-        resp_dict = {'time': timestamps,
-                     'ch4': ch4_samples,
-                     'ch3': ch3_samples,
-                     'ch2': ch2_samples,
-                     'ch1': ch1_samples}
-        return resp_dict
+                # >> Report issue
+                missing_sample_cnt += 1
+                # print "Correcting missing sample => missing_sample_cnt %s " % missing_sample_cnt
+                # print "*****************************************************"
+
+                # >> Append "second" sample
+                val_datetime = "%sT%s" % (filename_date, matrix[sample_i][0])
+                timestamps.append(val_datetime)
+                ch1_samples.append(matrix[sample_i][1])
+                ch2_samples.append(matrix[sample_i][2])
+                ch3_samples.append(matrix[sample_i][3])
+                ch4_samples.append(matrix[sample_i][4])
+            else:
+                print "Error at %s => %s, %s, %s (second_timestamp != sps) or (second_timestamp != sps-1)" \
+                      " or (second_timestamp != sps+1) " %\
+                      (second_timestamp, second_microsec_normal_sps,
+                       second_microsec_1missing_sps, second_microsec_1extra_sps)
+                raise RuntimeError
+
+            # Append the rest of the samples in the current sec
+            sample_i_timestamp = None
+            while True:
+                sample_i += 1
+                try:
+                    sample_i_timestamp = dateutil.parser.parse(matrix[sample_i][0])
+                except IndexError:
+                    resp_dict = {'ch4': ch4_samples,
+                                 'ch3': ch3_samples,
+                                 'ch2': ch2_samples,
+                                 'ch1': ch1_samples}
+                    print "len(matrix) = %s " % len(matrix)
+                    print "missing_sample_cnt = %s " % missing_sample_cnt
+                    print "continuity_error_cnt = %s " % continuity_error_cnt
+                    print "seconds_cnt = %s " % seconds_cnt
+                    print "sample_i = %s " % sample_i
+                    print "len(ch1_samples) = %s " % len(ch1_samples)
+                    print "len(ch2_samples) = %s " % len(ch2_samples)
+                    print "len(ch3_samples) = %s " % len(ch3_samples)
+                    print "len(ch4_samples) = %s " % len(ch4_samples)
+                    print "*****************************************************"
+                    return resp_dict
+                if sample_i_timestamp.second != first_timestamp.second:
+                    break
+                # Append sample_i
+                val_datetime = "%sT%s" % (filename_date, matrix[sample_i][0])
+                timestamps.append(val_datetime)
+                ch1_samples.append(matrix[sample_i][1])
+                ch2_samples.append(matrix[sample_i][2])
+                ch3_samples.append(matrix[sample_i][3])
+                ch4_samples.append(matrix[sample_i][4])
+
+            # >> Add current second to the counter
+            seconds_cnt += 1
+
+            # >> Check seconds continuity
+            if first_timestamp + timedelta(seconds=1) != sample_i_timestamp:
+                print "Error at %s => %s != %s (first_timestamp + timedelta(seconds=1) != sample_i_timestamp)" % \
+                      (sample_i_timestamp, first_timestamp + timedelta(seconds=1), sample_i_timestamp)
+                print "*****************************************************"
+                continuity_error_cnt += 1
+                # raise RuntimeError
 
     @staticmethod
     def get_info(infile_path):
@@ -283,17 +316,19 @@ def tuple2mseed(infile, user_ch1, user_ch2, user_ch3, user_ch4):
         # 4) Get samples
         arg = "[tuple2mseed] Creating MSEED files for every channel .."
         print(arg)
-        resp_dict = TupleParser.get_data_and_correct_missing_samples(infile_path=infile,
-                                                                     starttime=tuple_header_starttime,
-                                                                     sps=tuple_header_sps)
-        # time = resp_dict['time']
+        resp_dict = TupleParser.get_and_correct_missing_samples(infile_path=infile,
+                                                                starttime=tuple_header_starttime,
+                                                                sps=tuple_header_sps)
         data_ch4 = resp_dict['ch4']
         data_ch3 = resp_dict['ch3']
         data_ch2 = resp_dict['ch2']
         data_ch1 = resp_dict['ch1']
 
-        # 5) Convert channel ch1
+        # >> Substract DC component
         data = np.int32(data_ch1)
+        data = data - np.mean(data)
+        data = np.int32(data)
+        # >> Convert channel to MSEED
         channel = user_ch1
         # Fill header attributes
         stats = {'network': 'UNK', 'station': tuple_filename_station, 'location': 'UNK',
@@ -301,7 +336,13 @@ def tuple2mseed(infile, user_ch1, user_ch2, user_ch3, user_ch4):
                  'mseed': {'dataquality': 'D'},
                  'starttime': UTCDateTime(str(tuple_header_starttime))}
         st = Stream([Trace(data=data, header=stats)])
-        outfile_name = tuple_header_starttime + "_" + tuple_filename_station + "_" + channel + ".MSEED"
+
+        # >> Write to disk
+        # print(tuple_header_starttime)
+        outfile_name = tuple_header_starttime.split(".")
+        # print(tuple_header_starttime)
+        outfile_name = outfile_name[0]
+        outfile_name = outfile_name + "_" + tuple_filename_station + "_" + channel + ".MSEED"
         outfile_name = outfile_name.replace(":", "-")
         st.write(outfile_name, format='MSEED', encoding=11, reclen=256, byteorder='>')
         #st.write(outfile_name, format='MSEED', encoding=0, reclen=256)
@@ -312,8 +353,11 @@ def tuple2mseed(infile, user_ch1, user_ch2, user_ch3, user_ch4):
         # print(st1[0].stats)
         # print(st1[0].data)
 
-        # 6) Convert channel SHZ
+        # >> Substract DC component
         data = np.int32(data_ch2)
+        data = data - np.mean(data)
+        data = np.int32(data)
+        # >> Convert channel to MSEED
         channel = user_ch2
         # Fill header attributes
         stats = {'network': 'UNK', 'station': tuple_filename_station, 'location': 'UNK',
@@ -321,7 +365,13 @@ def tuple2mseed(infile, user_ch1, user_ch2, user_ch3, user_ch4):
                  'mseed': {'dataquality': 'D'},
                  'starttime': UTCDateTime(str(tuple_header_starttime))}
         st = Stream([Trace(data=data, header=stats)])
-        outfile_name = tuple_header_starttime + "_" + tuple_filename_station + "_" + channel + ".MSEED"
+
+        # >> Write to disk
+        # print(tuple_header_starttime)
+        outfile_name = tuple_header_starttime.split(".")
+        # print(tuple_header_starttime)
+        outfile_name = outfile_name[0]
+        outfile_name = outfile_name + "_" + tuple_filename_station + "_" + channel + ".MSEED"
         outfile_name = outfile_name.replace(":", "-")
         st.write(outfile_name, format='MSEED', encoding=11, reclen=256, byteorder='>')
         #st.write(outfile_name, format='MSEED', encoding=0, reclen=256)
@@ -332,8 +382,11 @@ def tuple2mseed(infile, user_ch1, user_ch2, user_ch3, user_ch4):
         # print(st1[0].stats)
         # print(st1[0].data)
 
-        # 7) Convert channel SHE
+        # >> Substract DC component
         data = np.int32(data_ch3)
+        data = data - np.mean(data)
+        data = np.int32(data)
+        # >> Convert channel to MSEED
         channel = user_ch3
         # Fill header attributes
         stats = {'network': 'UNK', 'station': tuple_filename_station, 'location': 'UNK',
@@ -341,7 +394,13 @@ def tuple2mseed(infile, user_ch1, user_ch2, user_ch3, user_ch4):
                  'mseed': {'dataquality': 'D'},
                  'starttime': UTCDateTime(str(tuple_header_starttime))}
         st = Stream([Trace(data=data, header=stats)])
-        outfile_name = tuple_header_starttime + "_" + tuple_filename_station + "_" + channel + ".MSEED"
+
+        # >> Write to disk
+        # print(tuple_header_starttime)
+        outfile_name = tuple_header_starttime.split(".")
+        # print(tuple_header_starttime)
+        outfile_name = outfile_name[0]
+        outfile_name = outfile_name + "_" + tuple_filename_station + "_" + channel + ".MSEED"
         outfile_name = outfile_name.replace(":", "-")
         st.write(outfile_name, format='MSEED', encoding=11, reclen=256, byteorder='>')
         #st.write(outfile_name, format='MSEED', encoding=0, reclen=256)
@@ -352,8 +411,11 @@ def tuple2mseed(infile, user_ch1, user_ch2, user_ch3, user_ch4):
         # print(st1[0].stats)
         # print(st1[0].data)
 
-        # 8) Convert channel ch4
+        # >> Substract DC component
         data = np.int32(data_ch4)
+        data = data - np.mean(data)
+        data = np.int32(data)
+        # >> Convert channel to obspy Stream
         channel = user_ch4
         # Fill header attributes
         stats = {'network': 'UNK', 'station': tuple_filename_station, 'location': 'UNK',
@@ -361,7 +423,13 @@ def tuple2mseed(infile, user_ch1, user_ch2, user_ch3, user_ch4):
                  'mseed': {'dataquality': 'D'},
                  'starttime': UTCDateTime(str(tuple_header_starttime))}
         st = Stream([Trace(data=data, header=stats)])
-        outfile_name = tuple_header_starttime + "_" + tuple_filename_station + "_" + channel + ".MSEED"
+
+        # >> Write to disk in MSEED format
+        # print(tuple_header_starttime)
+        outfile_name = tuple_header_starttime.split(".")
+        # print(tuple_header_starttime)
+        outfile_name = outfile_name[0]
+        outfile_name = outfile_name + "_" + tuple_filename_station + "_" + channel + ".MSEED"
         outfile_name = outfile_name.replace(":", "-")
         st.write(outfile_name, format='MSEED', encoding=11, reclen=256, byteorder='>')
         #st.write(outfile_name, format='MSEED', encoding=0, reclen=256)

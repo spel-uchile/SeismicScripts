@@ -8,7 +8,7 @@ from os import listdir
 from os.path import isfile, join
 
 parser = argparse.ArgumentParser(description='Obspy wrapper: Apply \"change extension\" operation for infolder')
-parser.add_argument('--infolder', action='store', help='files to process', required=True)
+parser.add_argument('directory', help='directory to use', action='store')
 #parser.add_argument('file', type=argparse.FileType('r'), nargs='+')
 parser.add_argument('--extin', action='store', help='extin to filter', required=True)
 parser.add_argument('--extout', action='store', help='extout to filter', required=True)
@@ -22,7 +22,7 @@ print(extin)
 extout = args.extout
 print(extout)
 # Convert to real (no symlink) and full path
-infolder_path = args.infolder
+infolder_path = args.directory
 infolder_path = os.path.normcase(infolder_path)
 infolder_path = os.path.normpath(infolder_path)
 infolder_path = os.path.realpath(infolder_path)

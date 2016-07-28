@@ -8,8 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mplt
 # mplt.rcParams.chunksize(100000)
-# mplt.rcParams['chunksize'] = (100000)
-# mplt.rcParams['agg.path.chunksize'] = 10000
+# mplt.rcParams['chunksize'] = 100000
+mplt.rcParams['agg.path.chunksize'] = 10000
 # mplt.use('Agg')
 
 
@@ -49,6 +49,7 @@ def cross_correlation(infile1, infile2, outfile):
     arg = "len(samples1) %s samples1 %s" % (len(samples1), samples1)
     print(arg)
 
+    # 3) Normalize crossCorrelation
     st2 = read(infile2)
     samples2 = np.float64(st2[0].data)
     samples2 -= np.mean(samples2)
@@ -75,8 +76,25 @@ def cross_correlation(infile1, infile2, outfile):
 
     # Plot
     # cross_corr = np.log10(cross_corr)
-    plt.plot(t_time, cross_corr, marker='o', color='black', linestyle="-", markersize=4)
-    # plt.yscale('log', basey=10, nonposy='clip')
+    plt.plot(t_time, cross_corr, marker='o', color='black', linestyle="-", markersize=2)
+    maxval_cross_corr = np.max(cross_corr)
+    arg = "np.max(cross_corr) %s " % maxval_cross_corr
+    print(arg)
+    try:
+        plt.yscale('log', basey=10, nonposy='clip')
+        # plt.ylabel("Normailzed Frequency [log10 scale]")
+    except ValueError:
+        plt.yscale('linear')
+        # plt.ylabel("Normailzed Frequency [linear scale]")
+    # if maxval_cross_corr <= 0 or maxval_cross_corr == float('nan') or \
+    #         maxval_cross_corr == np.NAN or maxval_cross_corr == 'nan' \
+    #         or np.isnan(maxval_cross_corr):
+    #     arg = "maxval_cross_corr == float('nan')"
+    #     print(arg)
+    # # if maxval_cross_corr <= 0 or maxval_cross_corr == float('nan'):
+    # #     pass
+    # else:
+    #     plt.yscale('log', basey=10, nonposy='clip')
 
     # # Extra info (max Freq, dBFS,  etc)
     plt.title('Cross-Correlation')

@@ -16,28 +16,16 @@ class ApplyToFolder():
         pass
 
     @staticmethod
-    def apply_to_folder(infolder, str1, str2, outdayplot, outfilter):
+    def apply_to_folder(infolder, ext, strin, strout):
         print "[apply_to_folder] infolder %s " % infolder
         print "**********************************************************"
 
-        # 1) uncompress ".xxx.gz" files
-        xxxgz_files = ss_utilities.ParserUtilities.get_xxx_files(folderpath=infolder, extension=".MSEED.gz")
-        for path_i in xxxgz_files:
-            gz_path_i = os.path.abspath(path_i)
-            print "[apply_to_folder] Uncompressing gz_path_i %s .." % gz_path_i
-            cmdline = "gzip -d %s" % gz_path_i
-            subprocess.call(cmdline, shell=True)    # resp = str(subprocess.call(cmdline, shell=True))
-            # arg = "[convert_slist2mseed] cmdline %s, resp %s" % (cmdline, resp)
-            # print arg
-
-        print "**********************************************************"
-
-        # 2) get ".xxx" files and apply "apply_to_file"
-        xxx_files = ss_utilities.ParserUtilities.get_xxx_files(folderpath=infolder, extension=".MSEED")
+        # 1) get ".xxx" files and apply "apply_to_file"
+        xxx_files = ss_utilities.ParserUtilities.get_xxx_files(folderpath=infolder, extension=ext)
         for path_i in xxx_files:
             infile_i = os.path.abspath(path_i)
             print "[apply_to_folder] Processing infile_i %s .." % infile_i
-            ApplyToFolder.apply_to_file(infile_i, str1, str2, outdayplot, outfilter)
+            ApplyToFolder.apply_to_file(infile_i, strin, strout)
             print "Next file >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"    # separate infile_i
 
         print "**********************************************************"
@@ -46,20 +34,29 @@ class ApplyToFolder():
         print "Done"
 
     @staticmethod
-    def apply_to_file(infile, str1, str2, u_dayplot, u_filter):
-        if (str1 in str(infile)) and (str2 in str(infile)):
-            outfile = infile.replace(".MSEED", ".png")
-            ss_plot.plot_file(infile=infile, outfile=outfile, outdayplot=u_dayplot, outfilter=u_filter)
+    def apply_to_file(infile, strin, strout):
+        # basename = os.path.basename(infile)
+        # print "[apply_to_file] basename %s .." % basename
+        directory, filename = os.path.split(infile)
+        print "[apply_to_file] directory %s filename %s .." % (directory, filename)
+
+        filename = filename.replace(strin, strout)
+        outfile = directory + "/" + filename
+        outfile = os.path.normcase(outfile)
+        outfile = os.path.normpath(outfile)
+        outfile = os.path.realpath(outfile)
+        print "[apply_to_file] filename %s .." % filename
+
+        os.rename(infile, outfile)
 
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Apply function xxx to corresponding files .yyy in the given folder')
     parser.add_argument('directory', help='directory to use', action='store')
-    parser.add_argument('--str1', action='store', help='str1 to filter', default='MSEED')    # , required=True)
-    parser.add_argument('--str2', action='store', help='str2 to filter', default='MSEED')    # , required=True)
-    parser.add_argument('--dayplot', action='store_true', help='dayplot of files')
-    parser.add_argument('--filter', action='store', help='filter signal before ploting')
+    parser.add_argument('--strin', action='store', help='string in', required=True)     # , default='MSEED')
+    parser.add_argument('--strout', action='store', help='string out', required=True)     # , default='MSEED')
+    parser.add_argument('--ext', action='store', help='extension to filter', default='MSEED')
     args = parser.parse_args()
 
     uinfolder = args.directory
@@ -67,9 +64,7 @@ if __name__ == '__main__':
     uinfolder = os.path.normpath(uinfolder)
     uinfolder = os.path.realpath(uinfolder)
 
-    ApplyToFolder.apply_to_folder(infolder=uinfolder,
-                                  str1=args.str1, str2=args.str2,
-                                  outdayplot=args.dayplot, outfilter=args.filter)
+    ApplyToFolder.apply_to_folder(infolder=uinfolder, ext=args.ext, strin=args.strin, strout=args.strout)
 
 
 # parser = argparse.ArgumentParser(description='Obspy wrapper: Apply \"plot\" operation for infolder')
